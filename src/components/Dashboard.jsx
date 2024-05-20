@@ -6,106 +6,59 @@ import { toast } from "react-toastify";
 
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
+  const { isAuthenticated, authToken, admin } = useContext(Context);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!authToken) {
+        console.error("Authentication token not available.");
+        return;
+      }
       try {
         const { data } = await axios.get(
           "https://webapitimser.azurewebsites.net/api/v1/appointment/getall",
           {
             withCredentials: true,
             headers: {
-              Authorization: `Bearer ${authToken}`,  // Include the authorization token
+              Authorization: `Bearer ${authToken}`,
             }
           }
         );
         setAppointments(data.appointments);
       } catch (error) {
         console.error("Error fetching data", error);
+        toast.error("Failed to fetch appointments.");
         setAppointments([]);
       }
     };
     fetchData();
-  }, []);
+  }, [authToken]);
 
-  const handleUpdateDevelab = async (appointmentId, newStatus) => {
+  const handleUpdate = async (appointmentId, field, newValue) => {
     try {
       const { data } = await axios.put(
         `https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`,
-        { tomaEntregada: newStatus },
+        { [field]: newValue },
         {
           withCredentials: true,
           headers: {
-            Authorization: `Bearer ${authToken}`,  // Include the authorization token
+            Authorization: `Bearer ${authToken}`,
           }
         }
       );
-      setAppointments((prevAppointments) =>
-        prevAppointments.map((appointment) =>
-          appointment._id === appointmentId
-            ? { ...appointment, tomaEntregada: newStatus }
-            : appointment
+      setAppointments(prevAppointments =>
+        prevAppointments.map(appointment =>
+          appointment._id === appointmentId ? { ...appointment, [field]: newValue } : appointment
         )
       );
-      toast.success("Estatus Develab actualizado con éxito");
+      toast.success(`Appointment ${field} updated successfully.`);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error al actualizar el estatus Develab");
-    }
-  };
-  const handleUpdateFlebo = async (appointmentId, newFlebo) => {
-    try {
-      const { data } = await axios.put(
-        `https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`,
-        { flebotomista: newFlebo },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${authToken}`,  // Include the authorization token
-          }
-        }
-      );
-      setAppointments((prevAppointments) =>
-        prevAppointments.map((appointment) =>
-          appointment._id === appointmentId
-            ? { ...appointment, flebotomista: newFlebo }
-            : appointment
-        )
-      );
-      toast.success("Flebotomista actualizado con éxito");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Error al actualizar el flebotomista");
+      toast.error(`Failed to update appointment: ${error.response?.data?.message || error.message}`);
     }
   };
 
-
-  const handleUpdateDateTime = async (appointmentId, newDateTime) => {
-    try {
-      const { data } = await axios.put(
-        `https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`,
-        { fechaToma: newDateTime },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${authToken}`,  // Include the authorization token
-          }
-        }
-      );
-      setAppointments((prevAppointments) =>
-        prevAppointments.map((appointment) =>
-          appointment._id === appointmentId
-            ? { ...appointment, fechaToma: newDateTime }
-            : appointment
-        )
-      );
-      toast.success("Fecha y hora actualizadas con éxito");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Error al actualizar la fecha y hora");
-    }
-  };
-
-  const { isAuthenticated, admin } = useContext(Context);
   if (!isAuthenticated) {
-    return <Navigate to={"/login"} />;
+    return <Navigate to="/login" />;
   }
 
   return (
@@ -114,9 +67,7 @@ const Dashboard = () => {
         <div className="banner">
           <div className="firstBox">
             <div className="content">
-              <div>
-                <h5>{admin && `${admin.firstName} ${admin.lastName}`}</h5>
-              </div>
+              <h5>{admin && `${admin.firstName} ${admin.lastName}`}</h5>
             </div>
           </div>
           <div className="secondBox">
@@ -148,11 +99,10 @@ const Dashboard = () => {
                   <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
                   <td>{appointment.sampleLocation}</td>
                   <td>{`${appointment.fastingHours} horas`}</td>
-                  
                   <td>
                     <select
                       value={appointment.tomaProcesada}
-                      onChange={(e) => handleUpdateDateTime(appointment._id, 'tomaProcesada', e.target.value === 'true')}
+                      onChange={(e) => handleUpdate(appointment._id, 'tomaProcesada', e.target.value === 'true')}
                       className={appointment.tomaProcesada ? "value-accepted" : "value-rejected"}
                     >
                       <option value="true">Procesada</option>
@@ -162,7 +112,7 @@ const Dashboard = () => {
                   <td>
                     <select
                       value={appointment.flebotomista}
-                      onChange={(e) => handleUpdateFlebo(appointment._id, e.target.value)}
+                      onChange={(e) => handleUpdate(appointment._id, 'flebotomista', e.target.value)}
                       className="dropdown-selector"
                     >
                       <option value="">Selecciona un flebotomista</option>
@@ -176,14 +126,14 @@ const Dashboard = () => {
                     <input
                       type="datetime-local"
                       value={appointment.fechaToma ? new Date(appointment.fechaToma).toISOString().slice(0, 16) : ''}
-                      onChange={(e) => handleUpdateDateTime(appointment._id, e.target.value)}
+                      onChange={(e) => handleUpdate(appointment._id, 'fechaToma', e.target.value)}
                       className="date-time-input"
                     />
                   </td>
                   <td>
                     <select
                       value={appointment.tomaEntregada}
-                      onChange={(e) => handleUpdateDevelab(appointment._id, e.target.value === 'true')}
+                      onChange={(e) => handleUpdate(appointment._id, 'tomaEntregada', e.target.value === 'true')}
                       className="dropdown-selector"
                     >
                       <option value="false">Pendiente</option>
@@ -198,7 +148,6 @@ const Dashboard = () => {
       </section>
     </>
   );
-  
 };
 
 export default Dashboard;

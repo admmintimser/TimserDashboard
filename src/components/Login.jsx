@@ -25,14 +25,12 @@ const Login = () => {
       const response = await axios.post(
         "https://webapitimser.azurewebsites.net/api/v1/user/login",
         { email, password, role: "Admin" },
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
+        { withCredentials: true, headers: { "Content-Type": "application/json" } }
       );
       toast.success(response.data.message);
       setIsAuthenticated(true);
-      navigateTo("/dashboard"); // It's a good practice to navigate to a dashboard or home page.
+      setAuthToken(response.data.token);  // Assuming the token is returned under response.data.token
+      navigateTo("/dashboard");
       setEmail("");
       setPassword("");
     } catch (error) {

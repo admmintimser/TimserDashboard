@@ -6,13 +6,12 @@ import axios from "axios";
 
 const AddNewDoctor = () => {
   const { isAuthenticated, authToken } = useContext(Context);
-
   const [doctorData, setDoctorData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    nic: "",  // Assuming NIC is a unique identifier like a medical license number
+    nic: "",
     password: ""
   });
 
@@ -29,22 +28,15 @@ const AddNewDoctor = () => {
       toast.error("Authentication token not found. Please log in again.");
       return;
     }
-
     try {
       const response = await axios.post(
         "https://webapitimser.azurewebsites.net/api/v1/user/doctor/addnew",
-        { ...doctorData, role: "Doctor" },  // Explicitly setting the role
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${authToken}`  // Including the auth token in the header
-          }
-        }
+        doctorData,
+        { withCredentials: true, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` } }
       );
       toast.success(response.data.message);
-      navigateTo("/dashboard");  // Assuming you want to redirect to a dashboard
-      setDoctorData({ firstName: "", lastName: "", email: "", phone: "", nic: "", password: "" }); // Reset form
+      navigateTo("/dashboard");
+      setDoctorData({ firstName: "", lastName: "", email: "", phone: "", nic: "", password: "" });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add new doctor");
     }

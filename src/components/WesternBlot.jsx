@@ -9,11 +9,11 @@ const WesternBlot = () => {
   const { isAuthenticated, authToken } = useContext(Context);
 
   useEffect(() => {
+    if (!authToken) {
+      toast.error("Authentication token not found. Please log in again.");
+      return;
+    }
     const fetchData = async () => {
-      if (!authToken) {
-        toast.error("Authentication token not found. Please log in again.");
-        return;
-      }
       try {
         const { data } = await axios.get(
           "https://webapitimser.azurewebsites.net/api/v1/appointment/getall",
@@ -52,9 +52,9 @@ const WesternBlot = () => {
           appointment._id === appointmentId ? { ...appointment, ...payload } : appointment
         )
       );
-      toast.success(`Campo ${field} actualizado con éxito`);
+      toast.success(`Field ${field} updated successfully`);
     } catch (error) {
-      toast.error(error.response?.data?.message || `Error al actualizar el campo ${field}`);
+      toast.error(error.response?.data?.message || `Error updating field ${field}`);
     }
   };
 
