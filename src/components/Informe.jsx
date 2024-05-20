@@ -8,7 +8,7 @@ import {
 } from "recharts";
 
 const Informe = () => {
-  const { isAuthenticated, authToken } = useContext(Context);
+  const { isAuthenticated } = useContext(Context);
   const [data, setData] = useState({
     processingStats: {},
     ageDistribution: [],
@@ -17,18 +17,9 @@ const Informe = () => {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!authToken) {
-        toast.error("Authentication token not found. Please log in again.");
-        return;
-      }
+    async function fetchData() {
       try {
-        const result = await axios.get("https://webapitimser.azurewebsites.net/api/v1/data-for-dashboard", {
-          withCredentials: true,
-          headers: {
-            "Authorization": `Bearer ${authToken}`
-          }
-        });
+        const result = await axios.get("https://webapitimser.azurewebsites.net/api/v1/data-for-dashboard", { withCredentials: true });
         if (result.data.success) {
           setData({
             processingStats: result.data.data.processingStats,
@@ -43,9 +34,9 @@ const Informe = () => {
         console.error("Error fetching data", error);
         toast.error(`Error: ${error.response?.data?.message || "Failed to fetch data"}`);
       }
-    };
+    }
     fetchData();
-  }, [authToken]); // Include authToken in the dependencies
+  }, []);
 
   if (!isAuthenticated) {
     return <Navigate to={"/login"} />;
@@ -54,18 +45,20 @@ const Informe = () => {
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   return (
+    
     <div className="page analytics-page">
       <h1>Análisis</h1>
       <div className="dashboard-cards">
         {Object.entries(data.processingStats)
-          .filter(([key, _]) => key !== '_id') // Exclude '_id' from processing stats
+          .filter(([key, _]) => key !== '_id')  // Filtra para excluir la tarjeta con clave _id
           .map(([key, value]) => (
             <div key={key} className="dashboard-card">
-              <h2>{key.replace(/([A-Z])/g, ' $1').trim().replace("Count", " Count")}</h2>
+              <h2>{key.replace(/([A-Z])/g, ' $1').trim().replace("Count", " ")}</h2>
               <p>{value}</p>
             </div>
         ))}
       </div>
+
 
       <div className="charts-grid">
         {data.ageDistribution.length > 0 && (
@@ -76,7 +69,7 @@ const Informe = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="count" fill="#8884d8" name="Age Distribution" />
+              <Bar dataKey="count" fill="#8884d8" name="Distribución por Edad" />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -112,3 +105,4 @@ const Informe = () => {
 };
 
 export default Informe;
+

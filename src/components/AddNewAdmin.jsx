@@ -5,73 +5,108 @@ import { toast } from "react-toastify";
 import axios from "axios";
 
 const AddNewAdmin = () => {
-  const { isAuthenticated, authToken } = useContext(Context);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dob: "",
-    gender: "",
-    password: ""
-  });
+  const { isAuthenticated, setIsAuthenticated } = useContext(Context);
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("");
+  const [password, setPassword] = useState("");
 
   const navigateTo = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   const handleAddNewAdmin = async (e) => {
     e.preventDefault();
-    if (!authToken) {
-      toast.error("No authentication token. Please log in again.");
-      return;
-    }
     try {
-      const response = await axios.post(
-        "https://webapitimser.azurewebsites.net/api/v1/user/admin/addnew",
-        formData,
-        { withCredentials: true, headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' } }
-      );
-      toast.success(response.data.message);
-      navigateTo("/dashboard");
-      setFormData({ firstName: "", lastName: "", email: "", phone: "", dob: "", gender: "", password: "" });
+      await axios
+        .post(
+          "https://webapitimser.azurewebsites.net/api/v1/user/admin/addnew",
+          { firstName, lastName, email, phone, dob, gender, password },
+          {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          }
+        )
+        .then((res) => {
+          toast.success(res.data.message);
+          setIsAuthenticated(true);
+          navigateTo("/");
+          setFirstName("");
+          setLastName("");
+          setEmail("");
+          setPhone("");
+          setDob("");
+          setGender("");
+          setPassword("");
+        });
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add new admin");
+      toast.error(error.response.data.message);
     }
   };
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to={"/login"} />;
   }
 
   return (
     <section className="page">
       <section className="container form-component add-admin-form">
-        <img src="/logo.png" alt="logo" className="logo"/>
+      <img src="/logo.png" alt="logo" className="logo"/>
         <h1 className="form-title">Agregar nuevo administrador</h1>
         <form onSubmit={handleAddNewAdmin}>
           <div>
-            <input type="text" name="firstName" placeholder="Nombre(s)" value={formData.firstName} onChange={handleChange} />
-            <input type="text" name="lastName" placeholder="Apellidos" value={formData.lastName} onChange={handleChange} />
+            <input
+              type="text"
+              placeholder="Nombre(s)"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Apellidos"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </div>
           <div>
-            <input type="email" name="email" placeholder="Correo" value={formData.email} onChange={handleChange} />
-            <input type="tel" name="phone" placeholder="Teléfono" value={formData.phone} onChange={handleChange} />
+            <input
+              type="text"
+              placeholder="Correo"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Teléfono"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
           </div>
           <div>
-            <input type="date" name="dob" placeholder="Fecha de nacimiento" value={formData.dob} onChange={handleChange} />
-            <select name="gender" value={formData.gender} onChange={handleChange}>
+            <input
+              type={"date"}
+              placeholder="Date of Birth"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+            />
+          </div>
+          <div>
+            <select value={gender} onChange={(e) => setGender(e.target.value)}>
               <option value="">Género</option>
               <option value="Masculino">Masculino</option>
               <option value="Femenino">Femenino</option>
             </select>
-            <input type="password" name="password" placeholder="Contraseña" value={formData.password} onChange={handleChange} />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
           <div style={{ justifyContent: "center", alignItems: "center" }}>
-            <button type="submit">Registrar Admin</button>
+            <button type="submit">Nuevo Admin</button>
           </div>
         </form>
       </section>

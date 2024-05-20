@@ -6,57 +6,56 @@ import { Navigate } from "react-router-dom";
 
 const Messages = () => {
   const [messages, setMessages] = useState([]);
-  const { isAuthenticated, authToken } = useContext(Context);  // Assuming authToken is part of the context
-
+  const { isAuthenticated } = useContext(Context);
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!authToken) {
-        toast.error("Authentication token not found. Please log in again.");
-        return;
-      }
       try {
         const { data } = await axios.get(
           "https://webapitimser.azurewebsites.net/api/v1/message/getall",
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${authToken}`
-            }
-          }
+          { withCredentials: true }
         );
         setMessages(data.messages);
       } catch (error) {
-        const errorMsg = error.response ? error.response.data.message : "Failed to fetch messages";
-        console.error(errorMsg);
-        toast.error(errorMsg);
-        setMessages([]);  // Ensure state is cleared on error
+        console.log(error.response.data.message);
       }
     };
     fetchMessages();
-  }, [authToken]);  // Include authToken in the dependencies
+  }, []);
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to={"/login"} />;
   }
 
   return (
     <section className="page messages">
-      <h1>Messages</h1>
+      <h1>MESSAGE</h1>
       <div className="banner">
-        {messages.length > 0 ? (
-          messages.map((message) => (
-            <div className="card" key={message._id}>
-              <div className="details">
-                <p>First Name: <span>{message.firstName}</span></p>
-                <p>Last Name: <span>{message.lastName}</span></p>
-                <p>Email: <span>{message.email}</span></p>
-                <p>Phone: <span>{message.phone}</span></p>
-                <p>Message: <span>{message.message}</span></p>
+        {messages && messages.length > 0 ? (
+          messages.map((element) => {
+            return (
+              <div className="card" key={element._id}>
+                <div className="details">
+                  <p>
+                    First Name: <span>{element.firstName}</span>
+                  </p>
+                  <p>
+                    Last Name: <span>{element.lastName}</span>
+                  </p>
+                  <p>
+                    Email: <span>{element.email}</span>
+                  </p>
+                  <p>
+                    Phone: <span>{element.phone}</span>
+                  </p>
+                  <p>
+                    Message: <span>{element.message}</span>
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
-          <h2>No Messages Found</h2>  // Changed to H2 for better semantic hierarchy
+          <h1>No Messages!</h1>
         )}
       </div>
     </section>

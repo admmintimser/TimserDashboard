@@ -12,12 +12,7 @@ const Elisas = () => {
       try {
         const { data } = await axios.get(
           "https://webapitimser.azurewebsites.net/api/v1/appointment/getall",
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${authToken}`,  // Include the authorization token
-            }
-          }
+          { withCredentials: true }
         );
         setAppointments(data.appointments);
       } catch (error) {
@@ -35,12 +30,7 @@ const Elisas = () => {
       const { data } = await axios.put(
         `https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`,
         payload,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${authToken}`,  // Include the authorization token
-          }
-        }
+        { withCredentials: true }
       );
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
