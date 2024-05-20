@@ -4,12 +4,12 @@ import App from "./App.jsx";
 
 export const Context = createContext({ 
   isAuthenticated: false, 
-  authToken: null  // Add this to provide a default value
+  authToken: null 
 });
 
 const AppWrapper = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authToken, setAuthToken] = useState(null);  // Add state for authToken
+  const [authToken, setAuthToken] = useState(null);  
   const [admin, setAdmin] = useState({});
 
   return (

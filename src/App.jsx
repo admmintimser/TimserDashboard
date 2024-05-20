@@ -27,7 +27,7 @@ const App = () => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(
-          "https://webapitimser.azurewebsites.net//api/v1/user/admin/me",
+          "https://webapitimser.azurewebsites.net/api/v1/user/admin/me",
           {
             withCredentials: true,
           }
