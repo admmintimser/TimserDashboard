@@ -1,14 +1,10 @@
 import React, { useContext, useState } from "react";
 import { TiHome } from "react-icons/ti";
 import { RiLogoutBoxFill } from "react-icons/ri";
-import { AiFillMessage } from "react-icons/ai";
 import { GiHamburgerMenu } from "react-icons/gi";
-import { FaUserDoctor } from "react-icons/fa6";
 import { MdAddModerator } from "react-icons/md";
-import { IoPersonAddSharp } from "react-icons/io5";
 import { MdOutlineAutoGraph } from "react-icons/md";
 import { FaUserNurse } from "react-icons/fa6";
-import { IoPeopleSharp } from "react-icons/io5";
 import { FaFlaskVial } from "react-icons/fa6";
 import { FaPeopleGroup } from "react-icons/fa6";
 import { GrUserAdd } from "react-icons/gr";
@@ -29,6 +25,9 @@ const Sidebar = () => {
     await axios
       .get("https://webapitimser.azurewebsites.net/api/v1/user/admin/logout", {
         withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${authToken}`,  // Include the authorization token
+        }
       })
       .then((res) => {
         toast.success(res.data.message);

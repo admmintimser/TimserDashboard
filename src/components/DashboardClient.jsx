@@ -13,7 +13,12 @@ const DashboardClient = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get("https://webapitimser.azurewebsites.net/api/v1/appointment/getall", { withCredentials: true });
+        const { data } = await axios.get("https://webapitimser.azurewebsites.net/api/v1/appointment/getall", {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${authToken}`,  // Include the authorization token
+          }
+        });
         setAppointments(data.appointments);
       } catch (error) {
         console.error("Error fetching data", error);

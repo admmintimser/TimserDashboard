@@ -12,7 +12,12 @@ const Dashboard = () => {
       try {
         const { data } = await axios.get(
           "https://webapitimser.azurewebsites.net/api/v1/appointment/getall",
-          { withCredentials: true }
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${authToken}`,  // Include the authorization token
+            }
+          }
         );
         setAppointments(data.appointments);
       } catch (error) {
@@ -28,7 +33,12 @@ const Dashboard = () => {
       const { data } = await axios.put(
         `https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`,
         { tomaEntregada: newStatus },
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${authToken}`,  // Include the authorization token
+          }
+        }
       );
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
@@ -47,7 +57,12 @@ const Dashboard = () => {
       const { data } = await axios.put(
         `https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`,
         { flebotomista: newFlebo },
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${authToken}`,  // Include the authorization token
+          }
+        }
       );
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
@@ -68,7 +83,12 @@ const Dashboard = () => {
       const { data } = await axios.put(
         `https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`,
         { fechaToma: newDateTime },
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${authToken}`,  // Include the authorization token
+          }
+        }
       );
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
