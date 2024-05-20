@@ -24,7 +24,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "https://webapitimser.azurewebsites.net/api/v1/user/login",
-        { email, password },
+        { email, password, role: "Admin" },
         {
           withCredentials: true,
           headers: { "Content-Type": "application/json" },
