@@ -7,36 +7,21 @@ import { toast } from "react-toastify";
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const { isAuthenticated, authToken, admin } = useContext(Context);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const fetchUser = async () => {
-        if (!authToken) {
-            console.error("Authentication token not available.");
-            return;
-        }
-        try {
-            const response = await axios.get(
-                "https://webapitimser.azurewebsites.net/api/v1/user/admin/me",
-                {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`,
-                    },
-                    withCredentials: true,
-                }
-            );
-            setIsAuthenticated(true);
-            setAdmin(response.data.user);
-        } catch (error) {
-            setIsAuthenticated(false);
-            setAdmin({});
-            console.error("Failed to fetch user data", error);
-            toast.error("Failed to authenticate.");
-        }
+    const fetchData = async () => {
+      try {
+        const { data } = await axios.get("https://webapitimser.azurewebsites.net/api/v1/appointment/getall", { withCredentials: true });
+        setAppointments(data.appointments);
+      } catch (error) {
+        console.error("Error fetching data", error);
+        toast.error("Error al cargar los datos");
+        setAppointments([]);
+      }
     };
-    if (isAuthenticated) {
-        fetchUser();
-    }
-}, [authToken, isAuthenticated]);  // Include authToken in the dependencies
+    fetchData();
+  }, []);
 
   const handleUpdate = async (appointmentId, field, newValue) => {
     try {
@@ -45,9 +30,6 @@ const Dashboard = () => {
         { [field]: newValue },
         {
           withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          }
         }
       );
       setAppointments(prevAppointments =>
