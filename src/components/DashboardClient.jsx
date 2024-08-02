@@ -1,106 +1,200 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Context } from "../main";
-import { Navigate } from "react-router-dom";
-import axios from "axios";
-import { toast } from "react-toastify";
-import './dashboard.css'; // Asegúrate de importar los estilos CSS
-import { FaSearch } from "react-icons/fa";
+// src/components/DashboardClient.jsx
+import React, { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import { DNA } from 'react-loader-spinner';
+
+const fetchData = async (setData) => {
+  try {
+    const response = await axios.get('https://webapitimser.azurewebsites.net/api/v1/dashboardclientes');
+    setData(response.data);
+  } catch (error) {
+    toast.error("Error fetching dashboard data: " + error.message);
+  }
+};
 
 const DashboardClient = () => {
-  const [appointments, setAppointments] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [data, setData] = useState(null);
+  const [selectedClient, setSelectedClient] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [filteredData, setFilteredData] = useState([]);
+  const [isFiltered, setIsFiltered] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data } = await axios.get("https://webapitimser.azurewebsites.net/api/v1/appointment/getall", { withCredentials: true });
-        setAppointments(data.appointments);
-      } catch (error) {
-        console.error("Error fetching data", error);
-        toast.error("Error al cargar los datos");
-        setAppointments([]);
-      }
-    };
-    fetchData();
+    fetchData(setData);
   }, []);
 
-  const { isAuthenticated } = useContext(Context);
-  if (!isAuthenticated) {
-    return <Navigate to={"/login"} />;
+  const handleFilter = useCallback(() => {
+    if (selectedClient || selectedLocation) {
+      const filtered = data.sampleLocationByClientCounts.filter(item => (
+        (selectedClient ? item.client === selectedClient : true) &&
+        (selectedLocation ? item.location === selectedLocation : true)
+      ));
+      setFilteredData(filtered);
+      setIsFiltered(true);
+    } else {
+      setFilteredData([]);
+      setIsFiltered(false);
+    }
+  }, [selectedClient, selectedLocation, data]);
+
+  const handleDownload = useCallback(() => {
+    const exportData = isFiltered ? filteredData : data.sampleLocationByClientCounts;
+    if (!Array.isArray(exportData)) {
+      toast.error("Data format is incorrect. Cannot export.");
+      return;
+    }
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sample Locations");
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(file, "SampleLocationsReport.xlsx");
+  }, [filteredData, isFiltered, data]);
+
+  if (!data) {
+    return (
+      <div className="loading-container">
+        <DNA
+          visible={true}
+          height="180"
+          width="180"
+          color="pink"
+          ariaLabel="dna-loading"
+          wrapperClass="dna-wrapper"
+        />
+      </div>
+    );
   }
 
+  const { sampleLocationCounts, statusCounts, sampleLocationByClientCounts, sampleLocationByClient } = data;
+
+  const clientSampleCounts = {};
+  Object.entries(sampleLocationByClient).forEach(([location, clients]) => {
+    clients.forEach(client => {
+      if (!clientSampleCounts[client]) {
+        clientSampleCounts[client] = 0;
+      }
+      clientSampleCounts[client] += sampleLocationByClientCounts[location] || 0;
+    });
+  });
+
+  const uniqueClients = [...new Set(Object.values(sampleLocationByClient).flat())];
+  const uniqueLocations = Object.keys(sampleLocationByClient);
+
   return (
-    <div className="dashboard page">
+    <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
+        <h1>Dashboard Clientes</h1>
       </div>
       <div className="dashboard-cards">
-        <div className="card1">
-          <div className="card-content">
-            <span className="card-title">Pacientes</span>
-            <p className="card-value">{appointments.length}</p>
-          </div>
+        <div className="card">
+          <h2>Sample Locations</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Location</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(sampleLocationCounts).map(([location, count]) => (
+                <tr key={location}>
+                  <td>{location}</td>
+                  <td>{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="card1">
-          <div className="card-content">
-            <span className="card-title">Tomadas</span>
-            <p className="card-value">{appointments.filter(appt => appt.tomaEntregada).length}</p>
-          </div>
+        <div className="card">
+          <h2>Status Counts</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>True</th>
+                <th>False</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(statusCounts).filter(key => key.endsWith('True')).map(key => (
+                <tr key={key}>
+                  <td>{key.replace('True', '')}</td>
+                  <td>{statusCounts[key]}</td>
+                  <td>{statusCounts[key.replace('True', 'False')]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="card1">
-          <div className="card-content">
-            <span className="card-title">Resultados</span>
-            <p className="card-value">{appointments.filter(appt => appt.tomaEntregada).length}</p>
-          </div>
+        <div className="card">
+          <h2>Sample Locations by Client</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Total Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(clientSampleCounts).map(([client, count]) => (
+                <tr key={client}>
+                  <td>{client}</td>
+                  <td>{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="card1">
-          <div className="card-content">
-            <span className="card-title">Búsqueda</span>
-            <input
-              type="text"
-              placeholder="Buscar por nombre, apellido o lugar..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value.toLowerCase())}
-              className="search-input"
-            />
-            <FaSearch className="card-icon" />
+        <div className="card">
+          <h2>Interactive Queries</h2>
+          <div>
+            <label>Client: </label>
+            <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
+              <option value="">All Clients</option>
+              {uniqueClients.map(client => (
+                <option key={client} value={client}>{client}</option>
+              ))}
+            </select>
           </div>
+          <div>
+            <label>Location: </label>
+            <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)}>
+              <option value="">All Locations</option>
+              {uniqueLocations.map(location => (
+                <option key={location} value={location}>{location}</option>
+              ))}
+            </select>
+          </div>
+          <button onClick={handleFilter} className="filter-button">Filter</button>
+          <button onClick={handleDownload} className="download-button">Download as Excel</button>
         </div>
-      </div>
-      
-      <div className="appointments-list">
-        <h2>Pacientes</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Lugar de toma</th>
-              <th>Ayuno</th>
-              <th>Procesada</th>
-              <th>Flebotomista</th>
-              <th>Fecha y Hora de Toma</th>
-              <th>Correo</th>
-            </tr>
-          </thead>
-          <tbody>
-  {appointments.filter(appointment => 
-    appointment.patientFirstName.toLowerCase().includes(searchTerm) ||
-    appointment.patientLastName.toLowerCase().includes(searchTerm) ||
-    appointment.sampleLocation.toLowerCase().includes(searchTerm)
-  ).map((appointment, index) => (
-    <tr key={index}>
-      <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
-      <td>{appointment.sampleLocation}</td>
-      <td>{`${appointment.fastingHours} horas`}</td>
-      <td>{appointment.tomaEntregada ? "Sí" : "No"}</td>
-      <td>{appointment.flebotomista}</td>
-      <td>{new Date(appointment.fechaToma).toLocaleString()}</td>
-      <td>{appointment.email}</td>
-    </tr>
-  ))}
-</tbody>
-
-        </table>
+        {isFiltered && (
+          <div className="card">
+            <h2>Filtered Results</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Location</th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map(({ client, location, count }) => (
+                  <tr key={`${client}-${location}`}>
+                    <td>{client}</td>
+                    <td>{location}</td>
+                    <td>{count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

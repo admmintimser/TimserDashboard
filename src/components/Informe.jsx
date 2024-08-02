@@ -1,108 +1,146 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Context } from "../main";
-import { Navigate } from "react-router-dom";
-import axios from "axios";
-import { toast } from "react-toastify";
+import React, { useEffect, useState } from 'react';
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from "recharts";
+  BarChart, Bar, PieChart, Pie, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Cell, ResponsiveContainer
+} from 'recharts';
+import axios from 'axios';
+import * as XLSX from 'xlsx';
 
 const Informe = () => {
-  const { isAuthenticated } = useContext(Context);
-  const [data, setData] = useState({
-    processingStats: {},
-    ageDistribution: [],
-    areaTypeDistribution: [],
-    educationLevelDistribution: []
-  });
+  const [statusCounts, setStatusCounts] = useState([]);
+  const [locationCounts, setLocationCounts] = useState([]);
+  const [clientLocationCounts, setClientLocationCounts] = useState([]);
+  const [trendData, setTrendData] = useState([]);
+  const [selectedClient, setSelectedClient] = useState('');
+  const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
-        const result = await axios.get("https://webapitimser.azurewebsites.net/api/v1/data-for-dashboard", { withCredentials: true });
-        if (result.data.success) {
-          setData({
-            processingStats: result.data.data.processingStats,
-            ageDistribution: result.data.data.ageDistribution.map(item => ({ name: `${item._id} años`, count: item.count })),
-            areaTypeDistribution: result.data.data.areaTypeDistribution.map(item => ({ name: item._id, count: item.count })),
-            educationLevelDistribution: result.data.data.educationLevelDistribution.map(item => ({ name: item._id, count: item.count }))
-          });
-        } else {
-          throw new Error("Data structure from API is incorrect or missing data");
-        }
+        const response = await axios.get('/api/v1/Informees');
+        const { statusCounts, locationCounts, clientLocationCounts, trendData } = response.data;
+        setStatusCounts(statusCounts);
+        setLocationCounts(locationCounts);
+        setClientLocationCounts(clientLocationCounts);
+        setTrendData(trendData);
       } catch (error) {
-        console.error("Error fetching data", error);
-        toast.error(`Error: ${error.response?.data?.message || "Failed to fetch data"}`);
+        console.error('Error fetching data', error);
       }
-    }
+    };
+
     fetchData();
   }, []);
 
-  if (!isAuthenticated) {
-    return <Navigate to={"/login"} />;
-  }
+  const handleDownload = (data, filename) => {
+    if (!data || !data.length) {
+      alert('Data format is incorrect. Cannot export.');
+      return;
+    }
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, filename);
+  };
+
+  const handleClientChange = (e) => {
+    const selected = e.target.value;
+    setSelectedClient(selected);
+    if (selected === '') {
+      setFilteredData([]);
+    } else {
+      const filtered = clientLocationCounts.filter(item => item.client === selected);
+      setFilteredData(filtered);
+    }
+  };
 
   return (
-    
-    <div className="page analytics-page">
-      <h1>Análisis</h1>
-      <div className="dashboard-cards">
-        {Object.entries(data.processingStats)
-          .filter(([key, _]) => key !== '_id')  // Filtra para excluir la tarjeta con clave _id
-          .map(([key, value]) => (
-            <div key={key} className="dashboard-card">
-              <h2>{key.replace(/([A-Z])/g, ' $1').trim().replace("Count", " ")}</h2>
-              <p>{value}</p>
-            </div>
-        ))}
-      </div>
-
-
-      <div className="charts-grid">
-        {data.ageDistribution.length > 0 && (
-          <ResponsiveContainer width="33%" height={300}>
-            <BarChart data={data.ageDistribution}>
+    <div className="dashboard-client">
+      <h1>Commercial Dashboard</h1>
+      <div className="charts-container">
+        <div className="chart">
+          <h2>Total Samples by Location</h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={locationCounts}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis dataKey="location" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="count" fill="#8884d8" name="Distribución por Edad" />
+              <Bar dataKey="count" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
-        )}
+        </div>
 
-        {data.areaTypeDistribution.length > 0 && (
-          <ResponsiveContainer width="33%" height={300}>
+        <div className="chart">
+          <h2>Sample Status Distribution</h2>
+          <ResponsiveContainer width="100%" height={400}>
             <PieChart>
-              <Pie dataKey="count" data={data.areaTypeDistribution} cx="50%" cy="50%" outerRadius={100} fill="#8884d8" label>
-                {data.areaTypeDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
+              <Pie
+                data={statusCounts}
+                dataKey="count"
+                nameKey="status"
+                cx="50%"
+                cy="50%"
+                outerRadius={150}
+                fill="#82ca9d"
+                label
+              >
+                {
+                  statusCounts && statusCounts.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))
+                }
               </Pie>
               <Tooltip />
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
-        )}
+        </div>
 
-        {data.educationLevelDistribution.length > 0 && (
-          <ResponsiveContainer width="33%" height={300}>
-            <PieChart>
-              <Pie dataKey="count" data={data.educationLevelDistribution} cx="50%" cy="50%" outerRadius={100} fill="#8884d8" label>
-                {data.educationLevelDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
+        <div className="chart">
+          <h2>Sample Trends Over Time</h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
               <Tooltip />
-            </PieChart>
+              <Legend />
+              <Line type="monotone" dataKey="count" stroke="#8884d8" />
+            </LineChart>
           </ResponsiveContainer>
-        )}
+        </div>
+
+        <div className="chart">
+          <h2>Sample Locations by Client</h2>
+          <select value={selectedClient} onChange={handleClientChange}>
+            <option value="">All Clients</option>
+            {clientLocationCounts && clientLocationCounts.map((item, index) => (
+              <option key={index} value={item.client}>{item.client}</option>
+            ))}
+          </select>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={filteredData.length ? filteredData : clientLocationCounts}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="location" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="download-section">
+          <button onClick={() => handleDownload(statusCounts, 'StatusCounts.xlsx')}>Download Status Counts</button>
+          <button onClick={() => handleDownload(locationCounts, 'LocationCounts.xlsx')}>Download Location Counts</button>
+          <button onClick={() => handleDownload(filteredData.length ? filteredData : clientLocationCounts, 'ClientLocationCounts.xlsx')}>Download Client Location Counts</button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Informe;
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
+export default Informe;
