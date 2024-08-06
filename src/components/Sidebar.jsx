@@ -74,7 +74,8 @@ const SidebarComponent = () => {
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
               <img src="/logo.png" alt="Logo" style={{ width: '80%', maxWidth: '200px' }} />
             </div>
-            
+            <MenuItem icon={<GiHamburgerMenu />}  onClick={() => setCollapsed(!collapsed)}>Menu</MenuItem>
+
             <MenuItem icon={<TiHome />} component={<Link to="/" />}>Home</MenuItem>
             
             <SubMenu label="Dashboard" icon={<RiDashboardFill />}>
@@ -134,13 +135,6 @@ const SidebarComponent = () => {
             <MenuItem icon={<RiLogoutBoxFill />} onClick={handleLogout}>Logout</MenuItem>
           </Menu>
         </Sidebar>
-      )}
-      {isAuthenticated && (
-        <div className="wrapper">
-          <button onClick={() => setCollapsed(!collapsed)} className="hamburger">
-            <GiHamburgerMenu />
-          </button>
-        </div>
       )}
     </>
   );

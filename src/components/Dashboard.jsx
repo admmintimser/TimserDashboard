@@ -142,7 +142,7 @@ const Dashboard = () => {
       ...(name === "email" && { confirmEmail: value }),
     }));
   };
-
+  
   const handleFormSubmit1 = async (e) => {
     e.preventDefault();
     try {
@@ -367,10 +367,10 @@ const Dashboard = () => {
       <div className="loading-container">
         <DNA
           visible={true}
-          height="80"
-          width="80"
+          height="180"
+          width="180"
+          color="pink"
           ariaLabel="dna-loading"
-          wrapperStyle={{}}
           wrapperClass="dna-wrapper"
         />
       </div>
@@ -383,7 +383,10 @@ const Dashboard = () => {
         <InfoBox title="Cuestionarios" count={appointmentst} />
         <InfoBox title="Tomadas" count={appointmentstp} />
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <Actions fetchData={fetchData} fetchDatat={fetchDatat} fetchDatatp={fetchDatatp} downloadExcel={downloadExcel} addPatient={addPatient} />
+        
+      </div>
+      <div className="banner">
+      <Actions fetchData={fetchData} fetchDatat={fetchDatat} fetchDatatp={fetchDatatp} downloadExcel={downloadExcel} addPatient={addPatient} />
       </div>
       <div className="bannerd">
         {showModal && (
@@ -452,9 +455,9 @@ const SearchBar = ({ searchTerm, setSearchTerm }) => (
 
 const Actions = ({ fetchData, fetchDatat, fetchDatatp, downloadExcel, addPatient }) => (
   <div className="card-content1">
-    <button onClick={() => { fetchData(); fetchDatat(); fetchDatatp(); }} className="update-button">Actualizar</button>
-    <button onClick={downloadExcel} className="download-button">Descargar Excel</button>
-    <button onClick={addPatient} className="appoin-button">Agregar</button>
+    <button onClick={() => { fetchData(); fetchDatat(); fetchDatatp(); }} className="buttondashboard">Actualizar</button>
+    <button onClick={downloadExcel} className="buttondashboard">Descargar Excel</button>
+    <button onClick={addPatient} className="buttondashboard">Agregar</button>
   </div>
 );
 
