@@ -305,12 +305,12 @@ const Elisas = () => {
             <div className="loading-container">
                 <DNA
                     visible={true}
-                    height="80"
-                    width="80"
+                    height="180"
+                    width="180"
+                    color="pink"
                     ariaLabel="dna-loading"
-                    wrapperStyle={{}}
                     wrapperClass="dna-wrapper"
-                />
+                    />
             </div>
         );
     }
@@ -324,41 +324,56 @@ const Elisas = () => {
                 </div>
                 <div className="thirdBox">
                     <div className="card-content">
-                        <span className="card-title">Buscar</span>
-                        <input type="text" placeholder="Buscar por ID, nombre o estado..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value.toLowerCase())} className="search-input" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por ID, nombre, apellido o lugar..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+                            className="search-input"
+                        />
                         <FaSearch className="card-icon" />
                     </div>
                 </div>
                 <div className="thirdBox">
-                    <div className="card-content">
+                    <div className="card-content1">
                         <CiFilter className="card-icon" />
-                        <span className="card-title">Fecha Ingreso:</span>
-                    </div>
-                    <div className="card-content">
-                    <input type="date" value={fechaIngresoRange.start} onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })} />
-                    <input type="date" value={fechaIngresoRange.end} onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })} />
+                        <span className="card-title">Folio</span>
+                        <input
+                            type="number"
+                            placeholder="Min"
+                            value={folioDevelabRange.min}
+                            onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Max"
+                            value={folioDevelabRange.max}
+                            onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
+                        />
                     </div>
                 </div>
-                <div className="thirdBox">
-                    <div className="card-content">
-                        <CiFilter className="card-icon" />
-                        <span className="card-title">Folio Develab:</span>
-                    </div>
-                    <div className="card-content">
-                    <input type="number" placeholder="Min" value={folioDevelabRange.min} onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })} />
-                    <input type="number" placeholder="Max" value={folioDevelabRange.max} onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })} />
-                    </div>
+            </div>
+            <div className="banner">
+                <div className="card-content1">
+                    <CiFilter className="card-icon"/>
+                    <span className="card-title">Fecha Ingreso</span>
+                    <input
+                        type="date"
+                        value={fechaIngresoRange.start}
+                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
+                    />
+                    <input
+                        type="date"
+                        value={fechaIngresoRange.end}
+                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
+                    />
                 </div>
-                <div className="thirdBox">
-                    <div className="card-content">
-                        <button onClick={openBulkEditModal} className="botoncard">Editar Seleccionados</button>
-                    </div>
-                    <div className="card-content">
-                    <button onClick={handleSelectAll} className="botoncard">Seleccionar todo</button>
-                    </div>
-                    <div className="card-content">
-                    <button onClick={handleDownloadExcel} className="botoncard">Descargar Excel</button>
-                    </div>
+            </div>
+            <div className="banner">
+                <div className="card-content1">
+                    <button onClick={handleSelectAll} className="buttondashboard">Seleccionar</button>
+                    <button onClick={openBulkEditModal} className="buttondashboard">Editar</button>
+                    <button onClick={handleDownloadExcel} className="buttondashboard"> Excel</button>
                 </div>
             </div>
             

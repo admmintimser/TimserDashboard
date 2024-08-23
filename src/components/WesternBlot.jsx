@@ -1,3 +1,5 @@
+// weternblot.jsx
+
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -9,6 +11,7 @@ import moment from "moment-timezone";
 import * as XLSX from 'xlsx';
 import { DNA } from 'react-loader-spinner';
 import "./dashboard.css"; // Usar el mismo archivo CSS que el Dashboard
+import PrintButtonMicro from "./PrintButtonMicro";
 
 const Modal = ({ show, onClose, appointment }) => {
     if (!show) {
@@ -120,15 +123,21 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                 <span className="close" onClick={onClose}>&times;</span>
                 <h2>Editar Seleccionados</h2>
                 <form>
-                    <input
-                        type="text"
-                        name="estatusWesternBlot"
-                        placeholder="Estatus WB"
-                        value={estatusWesternBlot}
+                <select
+                        value={estatusWesternBlot || ""}
                         onChange={(e) => setEstatusWesternBlot(e.target.value)}
                         className="input"
                         required
-                    />
+                    >
+                        <option value="">Seleccione una opción</option>
+                        <option value="Preparación">Preparación</option>
+                        <option value="Electroforesis">Electroforesis</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Bloqueo">Bloqueo</option>
+                        <option value="Incubación">Incubación</option>
+                        <option value="Análisis">Análisis</option>
+                    </select>
+
                     <input
                         type="text"
                         name="lavoWestern"
@@ -325,13 +334,11 @@ const WesternBlot = () => {
             FolioDevelab: record.folioDevelab,
             TiempoInicioProceso: moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm"),
             EstatusMuestra: record.estatusMuestra,
-            EstatusWesternBlot: record.estatusWesternBlot,
-            TecnicoWB: record.tecnicoWB,
             FechaPrecipitado: record.fechaPrecipitado ? moment(record.fechaPrecipitado).format("YYYY-MM-DD") : 'N/A',
             FechaLavado: record.fechaLavado ? moment(record.fechaLavado).format("YYYY-MM-DD") : 'N/A',
+            TecnicoWB: record.tecnicoWB,
+            EstatusWesternBlot: record.estatusWesternBlot,
             ResultadoWesternBlot: record.resultadoWesternBlot,
-            EstatusElisa: record.estatusElisa,
-            ResultadoElisa: record.resultadoElisa,
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(filteredData);
@@ -351,10 +358,10 @@ const WesternBlot = () => {
             <div className="loading-container">
                 <DNA
                     visible={true}
-                    height="80"
-                    width="80"
+                    height="180"
+                    width="180"
+                    color="pink"
                     ariaLabel="dna-loading"
-                    wrapperStyle={{}}
                     wrapperClass="dna-wrapper"
                 />
             </div>
@@ -369,38 +376,21 @@ const WesternBlot = () => {
                     <h3>{filteredRecords.length}</h3>
                 </div>
                 <div className="thirdBox">
-                    <div className="card-content1">
-                        <FaSearch className="card-icon" />
-                        <span className="card-title">Buscar</span>
+                    <div className="card-content">
                         <input
                             type="text"
-                            placeholder="Buscar por ID, nombre o estado..."
+                            placeholder="Buscar por ID, nombre, apellido o lugar..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                             className="search-input"
                         />
-                    </div>
-                </div>
-                <div className="thirdBox">
-                    <div className="card-content1">
-                        <CiFilter className="card-icon"/>
-                        <span className="card-title">Fecha Ingreso</span>
-                        <input
-                            type="date"
-                            value={fechaIngresoRange.start}
-                            onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
-                        />
-                        <input
-                            type="date"
-                            value={fechaIngresoRange.end}
-                            onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
-                        />
+                        <FaSearch className="card-icon" />
                     </div>
                 </div>
                 <div className="thirdBox">
                     <div className="card-content1">
                         <CiFilter className="card-icon" />
-                        <span className="card-title">Folio Devellab</span>
+                        <span className="card-title">Folio</span>
                         <input
                             type="number"
                             placeholder="Min"
@@ -414,35 +404,49 @@ const WesternBlot = () => {
                             onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
                         />
                     </div>
-
-                </div>
-                <div className="thirdBox">
-                    <div className="card-content1">
-                        <button onClick={handleSelectAll} className="update-button1">Seleccionar</button>
-                        <button onClick={openBulkEditModal} className="update-button1">Editar</button>
-                        <button onClick={handleDownloadExcel} className="update-button1"> Excel</button>
-                    </div>
                 </div>
             </div>
-            
+            <div className="banner">
+                <div className="card-content1">
+                    <CiFilter className="card-icon"/>
+                    <span className="card-title">Fecha Ingreso</span>
+                    <input
+                        type="date"
+                        value={fechaIngresoRange.start}
+                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
+                    />
+                    <input
+                        type="date"
+                        value={fechaIngresoRange.end}
+                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
+                    />
+                    {selectedRecords.length > 0 && (
+                        <PrintButtonMicro selectedAppointments={selectedRecords} />
+                    )}
+
+                </div>
+                
+            </div>
+            <div className="banner">
+                <div className="card-content1">
+                    <button onClick={handleSelectAll} className="buttondashboard">Seleccionar</button>
+                    <button onClick={openBulkEditModal} className="buttondashboard">Editar</button>
+                    <button onClick={handleDownloadExcel} className="buttondashboard"> Excel</button>
+                </div>
+            </div>
             <div className="appointments-list" style={{ overflowX: "auto" }}>
                 <table>
-                    <caption>
-                        <h1 className="dashboard-header">WesternBlot - Biología Molecular</h1>
-                    </caption>
                     <thead>
                         <tr>
                             <th>Seleccionar</th>
                             <th>Folio Devellab</th>
                             <th>Hora Inicio</th>
                             <th>Estado Muestra</th>
-                            <th>Estado WB</th>
-                            <th>Lavado WB</th>
                             <th>Fecha Precipitado</th>
                             <th>Fecha Lavado</th>
                             <th>Técnico WB</th>
+                            <th>Estado WB</th>
                             <th>Resultado WB</th>
-                            <th>Estado Elisa</th>
                             <th>IDCuestionario</th>
                             <th>Actualizar</th>
                         </tr>
@@ -462,6 +466,19 @@ const WesternBlot = () => {
                                     <td>{record.folioDevelab}</td>
                                     <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
                                     <td>{record.estatusMuestra}</td>
+                                    <td>{record.fechaPrecipitado ? moment(record.fechaPrecipitado).format("YYYY-MM-DD") : 'N/A'}</td>
+                                    <td>{record.fechaLavado ? moment(record.fechaLavado).format("YYYY-MM-DD") : 'N/A'}</td>
+                                    <td>
+                                        <select
+                                            value={record.tecnicoWB || ""}
+                                            onChange={(e) => handleUpdateField(record._id, 'tecnicoWB', e.target.value)}
+                                            className="input"
+                                        >
+                                            <option value="">Seleccione una opción</option>
+                                            <option value="Técnico 1">Técnico 1</option>
+                                            <option value="Técnico 2">Técnico 2</option>
+                                        </select>
+                                    </td>
                                     <td>
                                         <select
                                             value={record.estatusWesternBlot || ""}
@@ -478,27 +495,12 @@ const WesternBlot = () => {
                                         </select>
                                     </td>
                                     <td>
-                                        <select
-                                            value={record.tecnicoWB || ""}
-                                            onChange={(e) => handleUpdateField(record._id, 'tecnicoWB', e.target.value)}
-                                            className="input"
-                                        >
-                                            <option value="">Seleccione una opción</option>
-                                            <option value="Técnico 1">Técnico 1</option>
-                                            <option value="Técnico 2">Técnico 2</option>
-                                        </select>
-                                    </td>
-                                    <td>{record.fechaPrecipitado ? moment(record.fechaPrecipitado).format("YYYY-MM-DD") : 'N/A'}</td>
-                                    <td>{record.fechaLavado ? moment(record.fechaLavado).format("YYYY-MM-DD") : 'N/A'}</td>
-                                    <td>
                                         <input
                                             type="text"
                                             value={record.resultadoWesternBlot || ""}
                                             onChange={(e) => handleUpdateField(record._id, 'resultadoWesternBlot', e.target.value)}
                                         />
                                     </td>
-                                    <td>{record.estatusElisa}</td>
-                                    <td>{record.resultadoElisa}</td>
                                     <td>
                                         <button className="botontabla" onClick={(e) => {
                                             e.stopPropagation(); // Prevent triggering the row click event
@@ -515,7 +517,7 @@ const WesternBlot = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="12">No se encontraron registros de Preventix.</td>
+                                <td colSpan="11">No se encontraron registros de Preventix.</td>
                             </tr>
                         )}
                     </tbody>

@@ -1,3 +1,5 @@
+// src/components/PreventixDashboard.jsx
+
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -112,29 +114,28 @@ const PreventixDashboard = () => {
                             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                             className="search-input"
                         />
-                        
                     </div>
                 </div>
             </div>
             <div className="appointments-list" style={{ overflowX: 'auto' }}>
-                <table>
+                <table style={{ tableLayout: 'fixed', width: '100%' }}>
                     <thead>
                         <tr>
-                            <th>Folio Develab</th>
-                            <th>Estatus Tiempo</th>
-                            <th>Fecha de Ingreso</th>
-                            <th>Estatus Resultados</th>
-                            <th>Fecha envió resultados</th>
-                            <th>Estado de Muestra</th>
-                            <th>Temperatura Recepción</th>
-                            <th>Interpretación</th>
-                            <th>Estado Western Blot</th>
-                            <th>Resultado Western Blot</th>
-                            <th>Estado Elisa</th>
-                            <th>Resultado Elisa</th>
-                            <th>Ubicación del Proceso</th>
-                            <th>ID</th>
-                            <th>IDCuestionario</th>
+                            <th style={{ width: '7%' }}>Folio Develab</th>
+                            <th style={{ width: '7%' }}>Estatus Tiempo</th>
+                            <th style={{ width: '10%' }}>Fecha de Ingreso</th>
+                            <th style={{ width: '7%' }}>Estatus Resultados</th>
+                            <th style={{ width: '10%' }}>Fecha envió resultados</th>
+                            <th style={{ width: '10%' }}>Estado de Muestra</th>
+                            <th style={{ width: '10%' }}>Temperatura Recepción</th>
+                            <th style={{ width: '10%' }}>Interpretación</th>
+                            <th style={{ width: '7%' }}>Estado Western Blot</th>
+                            <th style={{ width: '7%' }}>Resultado Western Blot</th>
+                            <th style={{ width: '7%' }}>Estado Elisa</th>
+                            <th style={{ width: '7%' }}>Resultado Elisa</th>
+                            <th style={{ width: '10%' }}>Ubicación del Proceso</th>
+                            <th style={{ width: '7%' }}>ID</th>
+                            <th style={{ width: '7%' }}>IDCuestionario</th>
                         </tr>
                     </thead>
                     <tbody>

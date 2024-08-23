@@ -1,5 +1,6 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
+import { BrowserRouter as Router } from "react-router-dom"; // Importa y usa Router aquí
 import App from "./App.jsx";
 
 export const Context = createContext({ isAuthenticated: false });
@@ -7,7 +8,17 @@ export const Context = createContext({ isAuthenticated: false });
 const AppWrapper = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [admin, setAdmin] = useState({});
-    const [userRole, setUserRole] = useState(""); // Nuevo estado para el rol del usuario
+    const [userRole, setUserRole] = useState("");
+
+    useEffect(() => {
+        const savedAuthStatus = localStorage.getItem("isAuthenticated") === "true";
+        const savedAdmin = JSON.parse(localStorage.getItem("admin")) || {};
+        const savedUserRole = localStorage.getItem("userRole") || "";
+
+        setIsAuthenticated(savedAuthStatus);
+        setAdmin(savedAdmin);
+        setUserRole(savedUserRole);
+    }, []);
 
     return (
         <Context.Provider
@@ -17,18 +28,18 @@ const AppWrapper = () => {
                 admin,
                 setAdmin,
                 userRole,
-                setUserRole // Añadir setter para el rol del usuario
+                setUserRole,
             }}
         >
-            <App />
+            <Router>
+                <App />
+            </Router>
         </Context.Provider>
     );
 };
 
-ReactDOM
-    .createRoot(document.getElementById("root"))
-    .render(
-        <React.StrictMode>
-            <AppWrapper />
-        </React.StrictMode>
-    );
+ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+        <AppWrapper />
+    </React.StrictMode>
+);
