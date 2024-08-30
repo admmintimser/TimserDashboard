@@ -441,13 +441,14 @@ const WesternBlot = () => {
                             <th>Seleccionar</th>
                             <th>Folio Devellab</th>
                             <th>Hora Inicio</th>
-                            <th>Estado Muestra</th>
+                            <th>Estado</th>
                             <th>Fecha Precipitado</th>
                             <th>Fecha Lavado</th>
-                            <th>Técnico WB</th>
-                            <th>Estado WB</th>
+                            <th>Técnico</th>
+                            <th>Status Proceso</th>
                             <th>Resultado WB</th>
-                            <th>IDCuestionario</th>
+                            <th>Elisa</th>
+                            <th>Cuestionario</th>
                             <th>Actualizar</th>
                         </tr>
                     </thead>
@@ -501,6 +502,7 @@ const WesternBlot = () => {
                                             onChange={(e) => handleUpdateField(record._id, 'resultadoWesternBlot', e.target.value)}
                                         />
                                     </td>
+                                    <td>{record.resultadoElisa}</td>
                                     <td>
                                         <button className="botontabla" onClick={(e) => {
                                             e.stopPropagation(); // Prevent triggering the row click event

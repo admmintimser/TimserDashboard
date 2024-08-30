@@ -51,6 +51,10 @@ const PreventixDashboard = () => {
         setSelectedAppointment(null);
     };
 
+    const handleIdCuestionarioClick = (appointmentId) => {
+        setSelectedAppointment(appointmentId);
+    };
+
     const getRowColor = (record) => {
         if (!record.tiempoFinProceso) {
             const daysDifference = moment().diff(moment(record.tiempoInicioProceso), 'days');
@@ -134,8 +138,7 @@ const PreventixDashboard = () => {
                             <th style={{ width: '7%' }}>Estado Elisa</th>
                             <th style={{ width: '7%' }}>Resultado Elisa</th>
                             <th style={{ width: '10%' }}>Ubicación del Proceso</th>
-                            <th style={{ width: '7%' }}>ID</th>
-                            <th style={{ width: '7%' }}>IDCuestionario</th>
+                            <th style={{ width: '7%' }}>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -149,10 +152,7 @@ const PreventixDashboard = () => {
                                         (record.tecnicoWB && record.tecnicoWB.toLowerCase().includes(searchTerm))
                                 )
                                 .map((record) => (
-                                    <tr
-                                        key={record._id}
-                                        onClick={() => handleRowClick(record.appointmentId)}
-                                    >
+                                    <tr key={record._id} onClick={() => handleRowClick(record.appointmentId)}>
                                         <td>{record.folioDevelab}</td>
                                         <td>
                                             <button style={getStatusButtonStyle(record)}>
@@ -163,15 +163,21 @@ const PreventixDashboard = () => {
                                         <td>{record.resultadosEnviados ? 'Enviado' : 'Pendiente'}</td>
                                         <td>{record.tiempoFinProceso ? moment(record.tiempoFinProceso).format("YYYY-MM-DD HH:mm") : 'N/A'}</td>
                                         <td>{record.estatusMuestra}</td>
-                                        <td>{record.temperatura}º</td>
+                                        <td>{record.temperatura ? `${record.temperatura}º` : 'N/A'}</td>
                                         <td>{record.interpretacionPreventix}</td>
                                         <td>{record.estatusWesternBlot}</td>
                                         <td>{record.resultadoWesternBlot}</td>
                                         <td>{record.estatusElisa}</td>
                                         <td>{record.resultadoElisa}</td>
                                         <td>{record.lugarProceso}</td>
-                                        <td>{record._id}</td>
-                                        <td>{record.appointmentId ? record.appointmentId._id : 'N/A'}</td>
+                                        <td>
+                                            <button className="botontabla" onClick={(e) => {
+                                                e.stopPropagation(); // Prevent triggering the row click event
+                                                handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
+                                            }}>
+                                                Ver
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))
                         ) : (

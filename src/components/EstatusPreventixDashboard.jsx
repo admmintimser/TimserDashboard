@@ -1,3 +1,5 @@
+// src/components/EstatusPreventixDashboard.jsx
+
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -21,7 +23,18 @@ const EstatusPreventixDashboard = () => {
                 { withCredentials: true }
             );
             if (response.data.preventix) {
-                setPreventixRecords(response.data.preventix.reverse());
+                const updatedRecords = response.data.preventix.map(record => {
+                    // Actualizar estatusElisa y estatusWB si los resultados están presentes
+                    if (record.resultadoWesternBlot) {
+                        record.estatusWB = true;
+                    }
+                    if (record.resultadoElisa) {
+                        record.estatusELisa = true;
+                    }
+                    return record;
+                });
+
+                setPreventixRecords(updatedRecords.reverse());
             } else {
                 throw new Error("No Preventix data received");
             }

@@ -19,10 +19,15 @@ import SidebarElisas from "./components/SidebarElisas";
 import SidebarWesternBlot from "./components/SidebarWesternBlot";
 import SidebarDireccion from "./components/SidebarDireccion";
 import SidebarComercial from "./components/SidebarComercial";
+import SidebarAdminLab from "./components/SidebarAdminLab";
 import AddNewAdmin from "./components/AddNewAdmin";
 import AddNewFleb from "./components/AddNewFleb";
+import Validacion from "./components/Validacion";
+import Liberacion from "./components/Liberacion";
+import AddNewUser from "./components/AddNewUser";
 import PreventixDashboard from "./components/PreventixDashboard";
 import EstatusPreventixDashboard from "./components/EstatusPreventixDashboard";
+import MuestrasLiberadas from "./components/MuestrasLiberadas";
 import { Context } from "./main";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
@@ -37,7 +42,7 @@ const App = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const response = await axios.get("http://localhost:8080/api/v1/user/me", { withCredentials: true });
+                const response = await axios.get("https://webapitimser.azurewebsites.net/api/v1/user/me", { withCredentials: true });
                 
                 if (response.data && response.data.user) { // Verifica que la respuesta contenga datos
                     setIsAuthenticated(true);
@@ -75,7 +80,7 @@ const App = () => {
     // Selecciona el Sidebar adecuado basado en el rol del usuario
     let Sidebar;
     switch (userRole) {
-        case "Recepcionista":
+        case "Receptionist":
             Sidebar = SidebarRecepcionist;
             break;
         case "Elisas":
@@ -89,6 +94,9 @@ const App = () => {
             break;
         case "Comercial":
             Sidebar = SidebarComercial;
+            break;
+        case "AdminLab":
+            Sidebar = SidebarAdminLab;
             break;
         default:
             Sidebar = SidebarComponent; // Default to admin or generic sidebar
@@ -110,6 +118,7 @@ const App = () => {
                     {/* Rutas abiertas a todos los roles por ahora */}
                     <Route path="/doctor/addnew" element={<AddNewDoctor />} />
                     <Route path="/admin/addnew" element={<AddNewAdmin />} />
+                    <Route path="/user/addnew" element={<AddNewUser />} />
                     <Route path="/messages" element={<Messages />} />
                     <Route path="/doctors" element={<Doctors />} />
                     <Route path="/flebos" element={<Flebos />} />
@@ -121,7 +130,10 @@ const App = () => {
                     <Route path="/data-for-dashboard" element={<Informe />} />
                     <Route path="/clientes" element={<Clientes />} />
                     <Route path="/cuestionario" element={<Cuestionario />} />
+                    <Route path="/validacion" element={<Validacion />} />
+                    <Route path="/liberacion" element={<Liberacion />} />
                     <Route path="/estatus-preventix-dashboard" element={<EstatusPreventixDashboard />} />
+                    <Route path="/reporte" element={<MuestrasLiberadas />} />
 
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>

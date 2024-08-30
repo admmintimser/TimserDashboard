@@ -39,6 +39,7 @@ const Login = () => {
 
             const roleToPath = {
                 admin: "/admin/dashboard",
+                adminlab: "/adminlab/dashboard",
                 recepcionista: "/reception/dashboard",
                 elisas: "/elisas/dashboard",
                 westernblot: "/westernblot/dashboard",
@@ -77,6 +78,7 @@ const Login = () => {
                                 onChange={(e) => setRole(e.target.value)}
                             >
                                 <MenuItem value="admin">Admin</MenuItem>
+                                <MenuItem value="adminlab">AdminLab</MenuItem>
                                 <MenuItem value="recepcionista">Recepcionista</MenuItem>
                                 <MenuItem value="elisas">Elisas</MenuItem>
                                 <MenuItem value="westernblot">Western Blot</MenuItem>
