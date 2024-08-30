@@ -142,7 +142,7 @@ const Dashboard = () => {
       ...(name === "email" && { confirmEmail: value }),
     }));
   };
-  
+
   const handleFormSubmit1 = async (e) => {
     e.preventDefault();
     try {

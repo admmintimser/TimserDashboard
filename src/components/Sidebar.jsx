@@ -130,6 +130,9 @@ const SidebarComponent = () => {
               <MenuItem icon={<IoPersonAddSharp />} component={<Link to="/doctor/addnew" />}>
                 Add New Doctor
               </MenuItem>
+              <MenuItem icon={<IoPersonAddSharp />} component={<Link to="/user/addnew" />}>
+                Add New User
+              </MenuItem>
             </SubMenu>
             
             <MenuItem icon={<RiLogoutBoxFill />} onClick={handleLogout}>Logout</MenuItem>
