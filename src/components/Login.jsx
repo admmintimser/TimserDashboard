@@ -79,10 +79,10 @@ const Login = () => {
                             >
                                 <MenuItem value="admin">Admin</MenuItem>
                                 <MenuItem value="adminlab">AdminLab</MenuItem>
-                                <MenuItem value="recepcionista">Recepcionista</MenuItem>
+                                <MenuItem value="recepcionista">Atención al cliente</MenuItem>
                                 <MenuItem value="elisas">Elisas</MenuItem>
                                 <MenuItem value="westernblot">Western Blot</MenuItem>
-                                <MenuItem value="direccion">Dirección</MenuItem>
+                                <MenuItem value="direccion">Recepción de muestra</MenuItem>
                                 <MenuItem value="comercial">Comercial</MenuItem>
                                 <MenuItem value="cliente">Cliente</MenuItem>
                             </Select>

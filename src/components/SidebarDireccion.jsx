@@ -1,11 +1,11 @@
 // src/components/SidebarDireccion.jsx
 import React, { useContext, useState } from "react";
-import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
+import { Sidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { sidebarClasses } from 'react-pro-sidebar';
 import { TiHome } from "react-icons/ti";
-import { RiLogoutBoxFill, RiDashboardFill } from "react-icons/ri";
-import { FaUsers } from "react-icons/fa";
-import { BsCardChecklist } from "react-icons/bs";
+import { RiLogoutBoxFill } from "react-icons/ri";
+import { GiHamburgerMenu } from "react-icons/gi";
+import { BsReception4, BsCardChecklist } from "react-icons/bs";
 import { toast } from "react-toastify";
 import { Context } from "../main";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,7 +18,7 @@ const SidebarDireccion = () => {
 
     const handleLogout = async () => {
         try {
-            const res = await axios.get("https://webapitimser.azurewebsites.net/api/v1/user/admin/logout", {
+            const res = await axios.get("https://webapitimser.azurewebsites.net/api/v1/user/logout", {
                 withCredentials: true,
             });
             toast.success(res.data.message);
@@ -59,14 +59,9 @@ const SidebarDireccion = () => {
                         }}
                     >
                         <MenuItem icon={<GiHamburgerMenu />} onClick={() => setCollapsed(!collapsed)}>Menu</MenuItem>
-                        <MenuItem icon={<FaUsers />} component={<Link to="/clientes" />}>Clientes</MenuItem>
-                        <MenuItem icon={<BsCardChecklist />} component={<Link to="/preventix" />}>Preventix</MenuItem>
+                        <MenuItem icon={<TiHome />} component={<Link to="/" />}>Home</MenuItem>
+                        <MenuItem icon={<BsReception4 />} component={<Link to="/receptionlab" />}>Recepción</MenuItem>
                         <MenuItem icon={<BsCardChecklist />} component={<Link to="/estatus-preventix-dashboard" />}>Estatus</MenuItem>
-                        <SubMenu label="Dashboard" icon={<RiDashboardFill />}>
-                            <MenuItem icon={<RiDashboardFill />} component={<Link to="/dashclient" />}>
-                                Client Dashboard
-                            </MenuItem>
-                        </SubMenu>
                         <MenuItem icon={<RiLogoutBoxFill />} onClick={handleLogout}>Logout</MenuItem>
                     </Menu>
                 </Sidebar>

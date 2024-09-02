@@ -162,27 +162,6 @@ const Recepcion = () => {
                                     className="input"
                                     required
                                 />
-                                <select
-                                    name="estatusMuestra"
-                                    onChange={handleFormChange}
-                                    className="input"
-                                    value={formValues.estatusMuestra}
-                                    required
-                                >
-                                    <option value="Buen Estado">Buen Estado</option>
-                                    <option value="Lipémica">Lipémica</option>
-                                    <option value="Hemolizada">Hemolizada</option>
-                                    <option value="Ictericia">Ictericia</option>
-                                </select>
-                                <input
-                                    type="number"
-                                    name="temperatura"
-                                    placeholder="Temperatura º"
-                                    value={formValues.temperatura}
-                                    onChange={handleFormChange}
-                                    className="input"
-                                    required
-                                />
                                 <button type="submit" className="save-button">
                                     Guardar
                                 </button>

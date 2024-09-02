@@ -8,6 +8,7 @@ import Messages from "./components/Messages";
 import Doctors from "./components/Doctors";
 import Flebos from "./components/Flebos";
 import Recepcion from "./components/Recepcion";
+import RecepcionLab from "./components/RecepcionLab";
 import Clientes from "./components/Clientes";
 import Cuestionario from "./components/Cuestionario";
 import Elisas from "./components/Elisas";
@@ -123,6 +124,7 @@ const App = () => {
                     <Route path="/doctors" element={<Doctors />} />
                     <Route path="/flebos" element={<Flebos />} />
                     <Route path="/reception" element={<Recepcion />} />
+                    <Route path="/receptionlab" element={<RecepcionLab />} />
                     <Route path="/preventix" element={<PreventixDashboard />} />
                     <Route path="/dashclient" element={<DashboardClient />} />
                     <Route path="/elisas" element={<Elisas />} />

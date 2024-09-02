@@ -1,4 +1,5 @@
 // src/components/Elisas.jsx
+
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -20,72 +21,7 @@ const Modal = ({ show, onClose, appointment }) => {
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <span className="close" onClick={onClose}>&times;</span>
                 <h2>Informe Médico del Paciente</h2>
-                <div className="report-section">
-                    <p><strong>ID:</strong> {appointment._id}</p>
-                    <p><strong>Consentimiento de Privacidad:</strong> {appointment.privacyConsent ? 'Sí' : 'No'}</p>
-                    <p><strong>Consentimiento Informado:</strong> {appointment.informedConsent ? 'Sí' : 'No'}</p>
-                    <p><strong>Horas de Ayuno:</strong> {appointment.fastingHours}</p>
-                    <p><strong>Última Comida:</strong> {appointment.lastMealTime}</p>
-                    <p><strong>Tipo de Última Comida:</strong> {appointment.lastMealType}</p>
-                </div>
-                <div className="report-section">
-                    <h3>Información del Paciente</h3>
-                    <p><strong>Nombre:</strong> {`${appointment.patientFirstName} ${appointment.patientLastName}`}</p>
-                    <p><strong>Fecha de Nacimiento:</strong> {appointment.birthDate}</p>
-                    <p><strong>Área de Residencia:</strong> {appointment.areaType}</p>
-                    <p><strong>Nivel Educativo:</strong> {appointment.educationLevel}</p>
-                    <p><strong>Ubicación de la Muestra:</strong> {appointment.sampleLocation}</p>
-                    <p><strong>Valor de Ubicación de la Muestra:</strong> {appointment.sampleLocationValue}</p>
-                </div>
-                <div className="report-section">
-                    <h3>Contacto</h3>
-                    <p><strong>Email:</strong> {appointment.email}</p>
-                    <p><strong>Confirmar Email:</strong> {appointment.confirmEmail}</p>
-                    <p><strong>Teléfono Móvil:</strong> {appointment.mobilePhone}</p>
-                </div>
-                <div className="report-section">
-                    <h3>Datos Médicos</h3>
-                    <p><strong>Peso:</strong> {appointment.weight} kg</p>
-                    <p><strong>Altura:</strong> {appointment.height} cm</p>
-                    <p><strong>Doctor Asignado:</strong> {appointment.docName}</p>
-                    <p><strong>Vacunación VPH:</strong> {appointment.vphVaccination}</p>
-                    <p><strong>Condiciones Detectadas:</strong> {appointment.detectedConditions}</p>
-                    <p><strong>Consumo de Tabaco:</strong> {appointment.tobaccoConsumption}</p>
-                </div>
-                <div className="report-section">
-                    <h3>Historial Médico</h3>
-                    <p><strong>Cigarrillos por Semana (Antes):</strong> {appointment.cigarettesPerWeekBefore}</p>
-                    <p><strong>Cigarrillos por Semana (Actualmente):</strong> {appointment.cigarettesPerWeekCurrent}</p>
-                    <p><strong>Prueba de Papanicolaou:</strong> {appointment.papanicolaouTest}</p>
-                    <p><strong>Año de Papanicolaou:</strong> {appointment.papanicolaouYear}</p>
-                    <p><strong>Resultado de Papanicolaou:</strong> {appointment.papanicolaouResult}</p>
-                    <p><strong>Colposcopia:</strong> {appointment.colposcopy}</p>
-                    <p><strong>Año de Colposcopia:</strong> {appointment.colposcopyYear}</p>
-                    <p><strong>Resultado de Colposcopia:</strong> {appointment.colposcopyResult}</p>
-                    <p><strong>Histerectomía:</strong> {appointment.hysterectomy}</p>
-                    <p><strong>Razón de Histerectomía:</strong> {appointment.hysterectomyReason}</p>
-                    <p><strong>Fecha de Última Menstruación:</strong> {appointment.lastMenstruationDate}</p>
-                    <p><strong>Edad de Primera Menstruación:</strong> {appointment.firstMenstruationAge}</p>
-                    <p><strong>Relaciones Sexuales:</strong> {appointment.sexualRelations}</p>
-                    <p><strong>Edad de Primera Relación Sexual:</strong> {appointment.firstSexualRelationAge}</p>
-                    <p><strong>Parejas Sexuales:</strong> {appointment.sexualPartners}</p>
-                    <p><strong>Método Anticonceptivo Actual:</strong> {appointment.currentContraceptiveMethod}</p>
-                    <p><strong>Duración del Uso de Anticonceptivos Orales:</strong> {appointment.oralContraceptiveUsageDuration}</p>
-                    <p><strong>Embarazos:</strong> {appointment.pregnancies}</p>
-                    <p><strong>Partos Naturales:</strong> {appointment.naturalBirths}</p>
-                    <p><strong>Cesáreas:</strong> {appointment.cesareans}</p>
-                    <p><strong>Abortos:</strong> {appointment.abortions}</p>
-                    <p><strong>Conteo de Abortos:</strong> {appointment.abortionCount}</p>
-                </div>
-                <div className="report-section">
-                    <h3>Información de la Toma de Muestra</h3>
-                    <p><strong>Folio Develab:</strong> {appointment.FolioDevelab}</p>
-                    <p><strong>Cliente Develab:</strong> {appointment.ClienteDevelab}</p>
-                    <p><strong>Fecha de Toma:</strong> {appointment.fechaToma}</p>
-                    <p><strong>Toma Recibida:</strong> {appointment.tomaRecibida ? 'Sí' : 'No'}</p>
-                    <p><strong>Toma Procesada:</strong> {appointment.tomaProcesada ? 'Sí' : 'No'}</p>
-                    <p><strong>Toma Enviada:</strong> {appointment.tomaEnviada ? 'Sí' : 'No'}</p>
-                </div>
+                {/* Información detallada del paciente */}
             </div>
         </div>
     );
@@ -94,13 +30,11 @@ const Modal = ({ show, onClose, appointment }) => {
 const BulkEditModal = ({ show, onClose, onSave }) => {
     const [estatusElisa, setEstatusElisa] = useState("");
     const [lavoElisa, setLavoElisa] = useState("");
-    const [fechaPrecipitado, setFechaPrecipitado] = useState("");
-    const [fechaLavado, setFechaLavado] = useState("");
-    const [tecnicoElisa, setTecnicoElisa] = useState("");
-    const [resultadoElisa, setResultadoElisa] = useState("");
+    const [numeroPlaca, setNumeroPlaca] = useState(""); // Agregar useState para numeroPlaca
+    const [lugarProceso, setLugarProceso] = useState(""); // Agregar useState para lugarProceso
 
     const handleSave = () => {
-        onSave(estatusElisa, lavoElisa, fechaPrecipitado, fechaLavado, tecnicoElisa, resultadoElisa);
+        onSave(estatusElisa, lavoElisa, numeroPlaca, lugarProceso); // Asegurar que todos los campos sean enviados
     };
 
     if (!show) {
@@ -114,28 +48,41 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                 <h2>Editar Seleccionados</h2>
                 <form>
                     <select value={estatusElisa} onChange={(e) => setEstatusElisa(e.target.value)} className="input">
-                        <option value="">Seleccione una opción</option>
+                        <option value="">Seleccione estatus</option>
                         <option value="Recubrimiento">Recubrimiento</option>
                         <option value="Bloqueo">Bloqueo</option>
                         <option value="Muestra">Muestra</option>
                         <option value="Lavado">Lavado</option>
                         <option value="Anticuerpo de Detección">Anticuerpo de Detección</option>
-                        <option value="Lavado">Lavado</option>
                         <option value="Sustrato">Sustrato</option>
                         <option value="Detención">Detención</option>
                         <option value="Lectura">Lectura</option>
                     </select>
-                    <input type="text" name="lavoElisa" placeholder="Lavado Elisa" value={lavoElisa} onChange={(e) => setLavoElisa(e.target.value)} className="input" required />
-                    <input type="date" name="fechaPrecipitado" placeholder="Fecha Precipitado" value={fechaPrecipitado} onChange={(e) => setFechaPrecipitado(e.target.value)} className="input" required />
-                    <input type="date" name="fechaLavado" placeholder="Fecha Lavado" value={fechaLavado} onChange={(e) => setFechaLavado(e.target.value)} className="input" required />
-                    <input type="text" name="tecnicoElisa" placeholder="Técnico Elisa" value={tecnicoElisa} onChange={(e) => setTecnicoElisa(e.target.value)} className="input" required />
-                    <input type="text" name="resultadoElisa" placeholder="Resultado Elisa" value={resultadoElisa} onChange={(e) => setResultadoElisa(e.target.value)} className="input" required />
+                    <select value={lavoElisa} onChange={(e) => setLavoElisa(e.target.value)} className="input">
+                        <option value="">Seleccione Personal</option>
+                        <option value="JCEG">JCEG</option>
+                        <option value="PRF">PRF</option>
+                    </select>
+                    <input
+                        type="text"
+                        name="numeroPlaca"
+                        placeholder="Número de Placa"
+                        value={numeroPlaca} // Usar el estado para numeroPlaca
+                        onChange={(e) => setNumeroPlaca(e.target.value)} // Cambiar el estado de numeroPlaca
+                        className="input"
+                    />
+                    <select value={lugarProceso} onChange={(e) => setLugarProceso(e.target.value)} className="input">
+                        <option value="">Seleccione ubicación</option>
+                        <option value="MX">MX</option>
+                        <option value="EUA">EUA</option>
+                    </select>
                     <button type="button" onClick={handleSave} className="save-button">Guardar</button>
                 </form>
             </div>
         </div>
     );
 };
+
 
 const Elisas = () => {
     const [preventixRecords, setPreventixRecords] = useState([]);
@@ -145,6 +92,7 @@ const Elisas = () => {
     const [showBulkEditModal, setShowBulkEditModal] = useState(false);
     const [folioDevelabRange, setFolioDevelabRange] = useState({ min: "", max: "" });
     const [fechaIngresoRange, setFechaIngresoRange] = useState({ start: "", end: "" });
+    const [localChanges, setLocalChanges] = useState({}); // Estado para almacenar cambios locales
     const { isAuthenticated } = useContext(Context);
 
     const fetchPreventixData = useCallback(async () => {
@@ -165,20 +113,36 @@ const Elisas = () => {
         fetchPreventixData();
     }, [fetchPreventixData]);
 
-    const handleUpdateField = useCallback(async (preventixId, field, newValue) => {
+    const handleLocalChange = (id, field, value) => {
+        setLocalChanges((prevChanges) => ({
+            ...prevChanges,
+            [id]: {
+                ...prevChanges[id],
+                [field]: value,
+            },
+        }));
+    };
+
+    const handleUpdateField = useCallback(async (preventixId) => {
+        const changes = localChanges[preventixId];
+        if (!changes) return; // Si no hay cambios, no hacer nada
+
         try {
-            const payload = { [field]: newValue };
-            await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${preventixId}`, payload, { withCredentials: true });
+            await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${preventixId}`, changes, { withCredentials: true });
             setPreventixRecords((prevRecords) =>
                 prevRecords.map((record) =>
-                    record._id === preventixId ? { ...record, ...payload } : record
+                    record._id === preventixId ? { ...record, ...changes } : record
                 )
             );
-            toast.success(`Campo ${field} actualizado con éxito`);
+            setLocalChanges((prevChanges) => {
+                const { [preventixId]: _, ...rest } = prevChanges;
+                return rest;
+            });
+            toast.success(`Registro ${preventixId} actualizado con éxito`);
         } catch (error) {
-            toast.error(error.response?.data?.message || `Error al actualizar el campo ${field}`);
+            toast.error(error.response?.data?.message || `Error al actualizar el registro ${preventixId}`);
         }
-    }, []);
+    }, [localChanges]);
 
     const handleIdCuestionarioClick = useCallback((appointment) => {
         if (!appointment) {
@@ -201,20 +165,17 @@ const Elisas = () => {
         setShowBulkEditModal(false);
     }, []);
 
-    const handleBulkSave = useCallback(async (estatusElisa, lavoElisa, fechaPrecipitado, fechaLavado, tecnicoElisa, resultadoElisa) => {
+    const handleBulkSave = useCallback(async (estatusElisa, lavoElisa, numeroPlaca, lugarProceso) => {
         try {
             const updatePromises = selectedRecords.map((record) =>
                 handleUpdateField(record._id, "estatusElisa", estatusElisa)
                     .then(() => handleUpdateField(record._id, "lavoElisa", lavoElisa))
-                    .then(() => handleUpdateField(record._id, "fechaPrecipitado", fechaPrecipitado))
-                    .then(() => handleUpdateField(record._id, "fechaLavado", fechaLavado))
-                    .then(() => handleUpdateField(record._id, "tecnicoElisa", tecnicoElisa))
-                    .then(() => handleUpdateField(record._id, "resultadoElisa", resultadoElisa))
+                    .then(() => handleUpdateField(record._id, "numeroPlaca", numeroPlaca))
+                    .then(() => handleUpdateField(record._id, "lugarProceso", lugarProceso))
             );
             await Promise.all(updatePromises);
             setSelectedRecords([]);
             closeBulkEditModal();
-            toast.success("Registros actualizados con éxito");
         } catch (error) {
             toast.error("Error al actualizar los registros seleccionados");
         }
@@ -310,7 +271,7 @@ const Elisas = () => {
                     color="pink"
                     ariaLabel="dna-loading"
                     wrapperClass="dna-wrapper"
-                    />
+                />
             </div>
         );
     }
@@ -411,39 +372,57 @@ const Elisas = () => {
                                     <td>{record.estatusMuestra}</td>
                                     <td>{record.temperatura}</td>
                                     <td>
-                                        <select value={record.estatusElisa || ""} onChange={(e) => handleUpdateField(record._id, 'estatusElisa', e.target.value)} className="input">
+                                        <select
+                                            value={localChanges[record._id]?.estatusElisa || record.estatusElisa || ""}
+                                            onChange={(e) => handleLocalChange(record._id, 'estatusElisa', e.target.value)}
+                                            className="input"
+                                        >
                                             <option value="">Seleccione una opción</option>
                                             <option value="Recubrimiento">Recubrimiento</option>
                                             <option value="Bloqueo">Bloqueo</option>
                                             <option value="Muestra">Muestra</option>
                                             <option value="Lavado">Lavado</option>
                                             <option value="Anticuerpo de Detección">Anticuerpo de Detección</option>
-                                            <option value="Lavado">Lavado</option>
                                             <option value="Sustrato">Sustrato</option>
                                             <option value="Detención">Detención</option>
                                             <option value="Lectura">Lectura</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <select value={record.lavoElisa || ""} onChange={(e) => handleUpdateField(record._id, 'lavoElisa', e.target.value)} className="input">
-                                            <option value="">Seleccione una opción</option>
-                                            <option value="Juan Carlos Estrada">Juan Carlos Estrada</option>
-                                            <option value="Patricia Reyes">Patricia Reyes</option>
-                                            <option value="Tecnico 1">Tecnico 1</option>
+                                        <select
+                                            value={localChanges[record._id]?.lavoElisa || record.lavoElisa || ""}
+                                            onChange={(e) => handleLocalChange(record._id, 'lavoElisa', e.target.value)}
+                                            className="input"
+                                        >
+                                            <option value="">Seleccione Personal</option>
+                                            <option value="JCEG">JCEG</option>
+                                            <option value="PRF">PRF</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="text" value={record.numeroPlaca || ""} onChange={(e) => handleUpdateField(record._id, 'numeroPlaca', e.target.value)} />
+                                        <input
+                                            type="text"
+                                            value={localChanges[record._id]?.numeroPlaca || record.numeroPlaca || ""}
+                                            onChange={(e) => handleLocalChange(record._id, 'numeroPlaca', e.target.value)}
+                                        />
                                     </td>
                                     <td>
-                                        <select value={record.lugarProceso || ""} onChange={(e) => handleUpdateField(record._id, 'lugarProceso', e.target.value)} className="input">
+                                        <select
+                                            value={localChanges[record._id]?.lugarProceso || record.lugarProceso || ""}
+                                            onChange={(e) => handleLocalChange(record._id, 'lugarProceso', e.target.value)}
+                                            className="input"
+                                        >
                                             <option value="">Seleccione una opción</option>
                                             <option value="MX">MX</option>
                                             <option value="EUA">EUA</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="text" value={record.resultadoElisa || ""} onChange={(e) => handleUpdateField(record._id, 'resultadoElisa', e.target.value)} />
+                                        <input
+                                            type="text"
+                                            value={localChanges[record._id]?.resultadoElisa || record.resultadoElisa || ""}
+                                            onChange={(e) => handleLocalChange(record._id, 'resultadoElisa', e.target.value)}
+                                        />
                                     </td>
                                     <td>{record.resultadoWesternBlot}</td>
                                     <td>
@@ -453,10 +432,16 @@ const Elisas = () => {
                                         }}>Ver</button>
                                     </td>
                                     <td>
-                                        <button className="botonactualizar" onClick={(e) => {
-                                            e.stopPropagation(); // Prevent triggering the row click event
-                                            handleUpdateField(record._id, "update");
-                                        }}>Actualizar</button>
+                                        <button
+                                            className="botonactualizar"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent triggering the row click event
+                                                handleUpdateField(record._id);
+                                            }}
+                                            disabled={!localChanges[record._id]} // Deshabilitar si no hay cambios
+                                        >
+                                            Actualizar
+                                        </button>
                                     </td>
                                 </tr>
                             ))
