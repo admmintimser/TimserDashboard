@@ -38,26 +38,36 @@ const RecepcionLab = () => {
         fetchData();
     }, [fetchData]);
 
-    const handleBarcodeInput = (e) => {
-        const value = e.target.value.trim();
-        setSearchTerm(value);
-
-        // Encontrar la cita que coincide con el término de búsqueda
-        const matchedAppointment = appointments.find(appointment => 
-            appointment.FolioDevelab && appointment.FolioDevelab.toString() === value
-        );
-
-        // Si se encuentra una coincidencia, agregarla a las citas escaneadas
-        if (matchedAppointment && !scannedAppointments.includes(matchedAppointment)) {
-            setScannedAppointments(prev => [...prev, matchedAppointment]);
-        }
-
-        // Limpiar el campo de entrada
-        e.target.value = "";
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
     };
 
-    const handleClearBarcodeInput = () => {
+    const handleSearchKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            const value = searchTerm.trim().toLowerCase();
+
+            // Filtrar las citas que coincidan con el término de búsqueda
+            const matchedAppointments = appointments.filter(appointment =>
+                (appointment.FolioDevelab && appointment.FolioDevelab.toString().toLowerCase() === value) ||
+                (appointment.patientFirstName && appointment.patientFirstName.toLowerCase().includes(value)) ||
+                (appointment.patientLastName && appointment.patientLastName.toLowerCase().includes(value))
+            );
+
+            // Agregar la cita encontrada a las citas escaneadas si no está ya en la lista
+            matchedAppointments.forEach(matchedAppointment => {
+                if (!scannedAppointments.some(app => app._id === matchedAppointment._id)) {
+                    setScannedAppointments(prev => [...prev, matchedAppointment]);
+                }
+            });
+
+            // Limpiar el término de búsqueda
+            setSearchTerm("");
+        }
+    };
+
+    const handleClearSearch = () => {
         setSearchTerm("");
+        setScannedAppointments([]); // Limpiar las citas escaneadas cuando se borra el campo
     };
 
     const handleSelectAppointment = (appointment) => {
@@ -131,12 +141,14 @@ const RecepcionLab = () => {
                             <input
                                 type="text"
                                 id="barcode-input"
-                                placeholder="Escanear código de barras"
+                                placeholder="Escanear código de barras o buscar por nombre"
                                 className="barcode-input"
-                                onChange={handleBarcodeInput}
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                onKeyDown={handleSearchKeyDown} // Detectar la tecla Enter
                                 autoFocus
                             />
-                            <FaTrash className="clear-icon" onClick={handleClearBarcodeInput} />
+                            <FaTrash className="clear-icon" onClick={handleClearSearch} />
                         </div>
                     </div>
                 </div>
@@ -223,3 +235,4 @@ const RecepcionLab = () => {
 };
 
 export default RecepcionLab;
+
