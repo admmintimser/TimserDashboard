@@ -1,5 +1,3 @@
-// src/components/RecepcionLab.jsx
-
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -11,32 +9,32 @@ import { DNA } from 'react-loader-spinner';
 import "./dashboard.css"; // Usar el mismo archivo CSS que el Dashboard
 
 const RecepcionLab = () => {
-    const [appointments, setAppointments] = useState([]);
-    const [scannedAppointments, setScannedAppointments] = useState([]); // Estado para citas escaneadas
-    const [selectedAppointments, setSelectedAppointments] = useState([]);
+    const [preventixRecords, setPreventixRecords] = useState([]);
+    const [scannedRecords, setScannedRecords] = useState([]); // Estado para registros escaneados
+    const [selectedRecords, setSelectedRecords] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [localChanges, setLocalChanges] = useState({}); // Estado para almacenar cambios locales
     const { isAuthenticated } = useContext(Context);
 
-    const fetchData = useCallback(async () => {
+    // Fetch the preventix data instead of appointments
+    const fetchPreventixData = useCallback(async () => {
         try {
             const response = await axios.get(
-                "https://webapitimser.azurewebsites.net/api/v1/appointment/getall",
+                "https://webapitimser.azurewebsites.net/api/v1/preventix/getall",
                 { withCredentials: true }
             );
 
-            const appointments = response.data.appointments || [];
-            const filteredAppointments = appointments.filter(appointment => appointment.tomaProcesada === true);
-            setAppointments(filteredAppointments.reverse());
+            const preventixRecords = response.data.preventix || [];
+            setPreventixRecords(preventixRecords.reverse());
         } catch (error) {
-            toast.error("Error fetching appointments: " + error.message);
-            setAppointments([]);
+            toast.error("Error fetching preventix records: " + error.message);
+            setPreventixRecords([]);
         }
     }, []);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        fetchPreventixData();
+    }, [fetchPreventixData]);
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
@@ -46,17 +44,15 @@ const RecepcionLab = () => {
         if (e.key === 'Enter') {
             const value = searchTerm.trim().toLowerCase();
 
-            // Filtrar las citas que coincidan con el término de búsqueda
-            const matchedAppointments = appointments.filter(appointment =>
-                (appointment.FolioDevelab && appointment.FolioDevelab.toString().toLowerCase() === value) ||
-                (appointment.patientFirstName && appointment.patientFirstName.toLowerCase().includes(value)) ||
-                (appointment.patientLastName && appointment.patientLastName.toLowerCase().includes(value))
+            // Filtrar los registros que coincidan con el término de búsqueda
+            const matchedRecords = preventixRecords.filter(record =>
+                (record.folioDevelab && record.folioDevelab.toString().toLowerCase() === value)
             );
 
-            // Agregar la cita encontrada a las citas escaneadas si no está ya en la lista
-            matchedAppointments.forEach(matchedAppointment => {
-                if (!scannedAppointments.some(app => app._id === matchedAppointment._id)) {
-                    setScannedAppointments(prev => [...prev, matchedAppointment]);
+            // Agregar el registro encontrado a los registros escaneados si no está ya en la lista
+            matchedRecords.forEach(matchedRecord => {
+                if (!scannedRecords.some(rec => rec._id === matchedRecord._id)) {
+                    setScannedRecords(prev => [...prev, matchedRecord]);
                 }
             });
 
@@ -67,14 +63,14 @@ const RecepcionLab = () => {
 
     const handleClearSearch = () => {
         setSearchTerm("");
-        setScannedAppointments([]); // Limpiar las citas escaneadas cuando se borra el campo
+        setScannedRecords([]); // Limpiar los registros escaneados cuando se borra el campo
     };
 
-    const handleSelectAppointment = (appointment) => {
-        setSelectedAppointments((prev) =>
-            prev.includes(appointment)
-                ? prev.filter((appt) => appt !== appointment)
-                : [...prev, appointment]
+    const handleSelectRecord = (record) => {
+        setSelectedRecords((prev) =>
+            prev.includes(record)
+                ? prev.filter((rec) => rec !== record)
+                : [...prev, record]
         );
     };
 
@@ -88,24 +84,37 @@ const RecepcionLab = () => {
         }));
     };
 
-    const handleUpdateField = useCallback(async (appointmentId) => {
-        const changes = localChanges[appointmentId];
+    // Actualizar tanto preventixRecords como scannedRecords
+    const handleUpdateField = useCallback(async (recordId) => {
+        const changes = localChanges[recordId];
         if (!changes) return; // Si no hay cambios, no hacer nada
 
         try {
-            await axios.put(`https://webapitimser.azurewebsites.net/api/v1/appointment/update/${appointmentId}`, changes, { withCredentials: true });
-            setAppointments((prevAppointments) =>
-                prevAppointments.map((appointment) =>
-                    appointment._id === appointmentId ? { ...appointment, ...changes } : appointment
+            await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${recordId}`, changes, { withCredentials: true });
+            
+            // Actualizar preventixRecords
+            setPreventixRecords((prevRecords) =>
+                prevRecords.map((record) =>
+                    record._id === recordId ? { ...record, ...changes } : record
                 )
             );
+
+            // Actualizar los registros escaneados también
+            setScannedRecords((prevRecords) =>
+                prevRecords.map((record) =>
+                    record._id === recordId ? { ...record, ...changes } : record
+                )
+            );
+
+            // Limpiar los cambios locales para el registro actualizado
             setLocalChanges((prevChanges) => {
-                const { [appointmentId]: _, ...rest } = prevChanges;
+                const { [recordId]: _, ...rest } = prevChanges;
                 return rest;
             });
-            toast.success(`Registro ${appointmentId} actualizado con éxito`);
+
+            toast.success(`Registro ${recordId} actualizado con éxito`);
         } catch (error) {
-            toast.error(error.response?.data?.message || `Error al actualizar el registro ${appointmentId}`);
+            toast.error(error.response?.data?.message || `Error al actualizar el registro ${recordId}`);
         }
     }, [localChanges]);
 
@@ -113,7 +122,7 @@ const RecepcionLab = () => {
         return <Navigate to="/login" />;
     }
 
-    if (!appointments.length) {
+    if (!preventixRecords.length) {
         return (
             <div className="loading-container">
                 <DNA
@@ -133,7 +142,7 @@ const RecepcionLab = () => {
             <div className="banner">
                 <div className="secondBox">
                     <p>Muestras Tomadas</p>
-                    <h3>{appointments.length}</h3>
+                    <h3>{preventixRecords.length}</h3>
                 </div>
                 <div className="thirdBox">
                     <div className="card-content">
@@ -141,7 +150,7 @@ const RecepcionLab = () => {
                             <input
                                 type="text"
                                 id="barcode-input"
-                                placeholder="Escanear código de barras o buscar por nombre"
+                                placeholder="Escanear código de barras o buscar por folio"
                                 className="barcode-input"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
@@ -158,64 +167,69 @@ const RecepcionLab = () => {
                     <thead>
                         <tr>
                             <th>Seleccionar</th>
-                            <th>Nombre</th>
-                            <th>Correo</th>
-                            <th>Lugar de Toma</th>
                             <th>Folio Develab</th>
-                            <th>Fecha Toma</th>
+                            <th>Fecha de Toma</th>
                             <th>Estado Muestra</th>
                             <th>Temperatura</th>
                             <th>Actualizar</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {scannedAppointments.length > 0 ? (
-                            scannedAppointments.map((appointment) => (
-                                <tr key={appointment._id}>
+                        {scannedRecords.length > 0 ? (
+                            scannedRecords.map((record) => (
+                                <tr key={record._id}>
                                     <td>
                                         <input
                                             className="roundedOne"
                                             type="checkbox"
-                                            checked={selectedAppointments.includes(appointment)}
-                                            onChange={() => handleSelectAppointment(appointment)}
+                                            checked={selectedRecords.includes(record)}
+                                            onChange={() => handleSelectRecord(record)}
                                         />
                                     </td>
-                                    <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
-                                    <td>{appointment.email}</td>
-                                    <td>{appointment.sampleLocation}</td>
-                                    <td>{appointment.FolioDevelab}</td>
-                                    <td>{moment(appointment.fechaToma).format("YYYY-MM-DD HH:mm")}</td>
+                                    <td>{record.folioDevelab}</td>
+                                    <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
+
                                     <td>
-                                        <select
-                                            value={localChanges[appointment._id]?.estatusMuestra || appointment.estatusMuestra || "Buen Estado"}
-                                            onChange={(e) => handleLocalChange(appointment._id, 'estatusMuestra', e.target.value)}
-                                            className="input"
-                                        >
-                                            <option value="Buen Estado">Buen Estado</option>
-                                            <option value="Lipémica +">Lipémica +</option>
-                                            <option value="Lipémica ++">Lipémica ++</option>
-                                            <option value="Lipémica +++">Lipémica +++</option>
-                                            <option value="Hemolizada +">Hemolizada +</option>
-                                            <option value="Hemolizada ++">Hemolizada ++</option>
-                                            <option value="Hemolizada +++">Hemolizada +++</option>
-                                            <option value="Ictericia +">Ictericia +</option>
-                                            <option value="Ictericia ++">Ictericia ++</option>
-                                            <option value="Ictericia +++">Ictericia +++</option>
-                                        </select>
+                                        {selectedRecords.includes(record) ? (
+                                            <select
+                                                value={localChanges[record._id]?.estatusMuestra || record.estatusMuestra || "Buen Estado"}
+                                                onChange={(e) => handleLocalChange(record._id, 'estatusMuestra', e.target.value)}
+                                                className="input"
+                                            >
+                                                <option value="Buen Estado">Buen Estado</option>
+                                                <option value="Lipémica +">Lipémica +</option>
+                                                <option value="Lipémica ++">Lipémica ++</option>
+                                                <option value="Lipémica +++">Lipémica +++</option>
+                                                <option value="Hemolizada +">Hemolizada +</option>
+                                                <option value="Hemolizada ++">Hemolizada ++</option>
+                                                <option value="Hemolizada +++">Hemolizada +++</option>
+                                                <option value="Ictericia +">Ictericia +</option>
+                                                <option value="Ictericia ++">Ictericia ++</option>
+                                                <option value="Ictericia +++">Ictericia +++</option>
+                                            </select>
+                                        ) : (
+                                            <span>{record.estatusMuestra || "Buen Estado"}</span>
+                                        )}
                                     </td>
+
                                     <td>
-                                        <input
-                                            type="number"
-                                            value={localChanges[appointment._id]?.temperatura || appointment.temperatura || ""}
-                                            onChange={(e) => handleLocalChange(appointment._id, 'temperatura', e.target.value)}
-                                            className="input"
-                                        />
+                                        {selectedRecords.includes(record) ? (
+                                            <input
+                                                type="number"
+                                                value={localChanges[record._id]?.temperatura || record.temperatura || ""}
+                                                onChange={(e) => handleLocalChange(record._id, 'temperatura', e.target.value)}
+                                                className="input"
+                                            />
+                                        ) : (
+                                            <span>{record.temperatura || "N/A"}</span>
+                                        )}
                                     </td>
+
                                     <td>
                                         <button
                                             className="botonactualizar"
-                                            onClick={() => handleUpdateField(appointment._id)}
-                                            disabled={!localChanges[appointment._id]} // Deshabilitar si no hay cambios
+                                            onClick={() => handleUpdateField(record._id)}
+                                            disabled={!localChanges[record._id]} // Deshabilitar si no hay cambios
                                         >
                                             Actualizar
                                         </button>
@@ -224,7 +238,7 @@ const RecepcionLab = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="9">No se encontraron citas escaneadas.</td>
+                                <td colSpan="6">No se encontraron registros escaneados.</td>
                             </tr>
                         )}
                     </tbody>
@@ -235,4 +249,3 @@ const RecepcionLab = () => {
 };
 
 export default RecepcionLab;
-
