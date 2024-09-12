@@ -12,8 +12,8 @@ const PrintButtonMicro = ({ selectedAppointments }) => {
 
     return (
         <div>
-            <button onClick={handlePrint} className="buttonprint">
-                Imprimir Etiquetas
+            <button onClick={handlePrint} >
+                Imprimir
             </button>
             <div style={{ display: "none" }}>
                 <div ref={componentRef}>

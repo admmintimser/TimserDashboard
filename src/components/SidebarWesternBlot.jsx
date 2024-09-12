@@ -19,7 +19,7 @@ const SidebarWesternBlot = () => {
 
     const handleLogout = async () => {
         try {
-            const res = await axios.get("https://webapitimser.azurewebsites.net/api/v1/user/logout", {
+            const res = await axios.get("http://localhost:8080/api/v1/user/logout", {
                 withCredentials: true,
             });
             toast.success(res.data.message);

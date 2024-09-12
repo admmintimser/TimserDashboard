@@ -1,5 +1,3 @@
-// weternblot.jsx
-
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -12,40 +10,24 @@ import * as XLSX from 'xlsx';
 import { DNA } from 'react-loader-spinner';
 import "./dashboard.css"; // Usar el mismo archivo CSS que el Dashboard
 import PrintButtonMicro from "./PrintButtonMicro";
-
-const Modal = ({ show, onClose, appointment }) => {
-    if (!show) {
-        return null;
-    }
-
-    return (
-        <div className="modal" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <span className="close" onClick={onClose}>&times;</span>
-                <h2>Informe Médico del Paciente</h2>
-                {/* Aquí se muestra la información del paciente */}
-            </div>
-        </div>
-    );
-};
+import Modal from './Modal'; // Importar el componente Modal correcto
 
 const BulkEditModal = ({ show, onClose, onSave }) => {
     const [estatusWesternBlot, setEstatusWesternBlot] = useState("");
     const [lavoWestern, setLavoWestern] = useState("");
     const [fechaPrecipitado, setFechaPrecipitado] = useState("");
     const [fechaLavado, setFechaLavado] = useState("");
-    const [tecnicoWB, setTecnicoWB] = useState("");
-    const [resultadoWesternBlot, setResultadoWesternBlot] = useState("");
 
     const handleSave = () => {
-        onSave(
+        const bulkChanges = {
             estatusWesternBlot,
             lavoWestern,
             fechaPrecipitado,
-            fechaLavado,
-            tecnicoWB,
-            resultadoWesternBlot
-        );
+            fechaLavado
+        };
+
+        console.log('Datos a enviar en la edición masiva:', bulkChanges);
+        onSave(bulkChanges); // Enviar el objeto completo de cambios
     };
 
     if (!show) {
@@ -73,15 +55,19 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                         <option value="Análisis">Análisis</option>
                     </select>
 
-                    <input
-                        type="text"
-                        name="lavoWestern"
-                        placeholder="Lavado WB"
-                        value={lavoWestern}
+                    <select
+                        value={lavoWestern || ""}
                         onChange={(e) => setLavoWestern(e.target.value)}
                         className="input"
                         required
-                    />
+                    >
+                        <option value="">Analista</option>
+                        <option value="JEHR">JEHR</option>
+                        <option value="ENTT">ENTT</option>
+                        <option value="DKVG">DKVG</option>
+                        <option value="JPRO">JPRO</option>
+                    </select>
+
                     <input
                         type="date"
                         name="fechaPrecipitado"
@@ -100,15 +86,7 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                         className="input"
                         required
                     />
-                    <input
-                        type="text"
-                        name="tecnicoWB"
-                        placeholder="Técnico WB"
-                        value={tecnicoWB}
-                        onChange={(e) => setTecnicoWB(e.target.value)}
-                        className="input"
-                        required
-                    />
+                    
                     <button type="button" onClick={handleSave} className="save-button">
                         Guardar
                     </button>
@@ -126,7 +104,7 @@ const WesternBlot = () => {
     const [showBulkEditModal, setShowBulkEditModal] = useState(false);
     const [folioDevelabRange, setFolioDevelabRange] = useState({ min: "", max: "" });
     const [fechaIngresoRange, setFechaIngresoRange] = useState({ start: "", end: "" });
-    const [localChanges, setLocalChanges] = useState({}); // Estado para almacenar cambios locales
+    const [localChanges, setLocalChanges] = useState({});
     const { isAuthenticated } = useContext(Context);
 
     const fetchPreventixData = useCallback(async () => {
@@ -157,12 +135,17 @@ const WesternBlot = () => {
         }));
     };
 
-    const handleUpdateField = useCallback(async (preventixId) => {
-        const changes = localChanges[preventixId];
-        if (!changes) return; // Si no hay cambios, no hacer nada
+    const handleUpdateFields = useCallback(async (preventixId, changes) => {
+        if (!changes || typeof changes !== 'object' || Object.keys(changes).length === 0) {
+            console.error("Cambios inválidos:", changes);
+            return;
+        }
 
         try {
+            console.log("Enviando cambios:", changes);
+
             await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${preventixId}`, changes, { withCredentials: true });
+
             setPreventixRecords((prevRecords) =>
                 prevRecords.map((record) =>
                     record._id === preventixId ? { ...record, ...changes } : record
@@ -176,7 +159,7 @@ const WesternBlot = () => {
         } catch (error) {
             toast.error(error.response?.data?.message || `Error al actualizar el registro ${preventixId}`);
         }
-    }, [localChanges]);
+    }, []);
 
     const handleIdCuestionarioClick = useCallback((appointment) => {
         if (!appointment) {
@@ -199,22 +182,31 @@ const WesternBlot = () => {
         setShowBulkEditModal(false);
     }, []);
 
-    const handleBulkSave = useCallback(async (estatusWesternBlot, lavoWestern, fechaPrecipitado, fechaLavado, tecnicoWB) => {
+    const handleBulkSave = useCallback(async (bulkChanges) => {
         try {
-            const updatePromises = selectedRecords.map((record) =>
-                handleUpdateField(record._id, "estatusWesternBlot", estatusWesternBlot)
-                    .then(() => handleUpdateField(record._id, "lavoWestern", lavoWestern))
-                    .then(() => handleUpdateField(record._id, "fechaPrecipitado", fechaPrecipitado))
-                    .then(() => handleUpdateField(record._id, "fechaLavado", fechaLavado))
-                    .then(() => handleUpdateField(record._id, "tecnicoWB", tecnicoWB))
-            );
-            await Promise.all(updatePromises);
+            const promises = selectedRecords.map((record) => {
+                const changes = {};
+                Object.entries(bulkChanges).forEach(([key, value]) => {
+                    if (value && typeof value === 'string') {
+                        changes[key] = value;
+                    }
+                });
+
+                if (Object.keys(changes).length > 0) {
+                    return handleUpdateFields(record._id, changes);
+                } else {
+                    return Promise.resolve();
+                }
+            });
+
+            await Promise.all(promises);
+            toast.success(`Pacientes actualizados correctamente (${selectedRecords.length})`);
             setSelectedRecords([]);
-            closeBulkEditModal();
+            setShowBulkEditModal(false);
         } catch (error) {
             toast.error("Error al actualizar los registros seleccionados");
         }
-    }, [selectedRecords, handleUpdateField, closeBulkEditModal]);
+    }, [selectedRecords, handleUpdateFields]);
 
     const getRowColor = useCallback((record) => {
         if (!record.tiempoFinProceso) {
@@ -311,13 +303,17 @@ const WesternBlot = () => {
 
     return (
         <section className="dashboard page">
-            <div className="banner">
-                <div className="secondBox">
-                    <p>Pacientes</p>
-                    <h3>{filteredRecords.length}</h3>
-                </div>
-                <div className="thirdBox">
-                    <div className="card-content">
+            <div className="unified-banner">
+                <h2 className="banner-title">WesternBlot</h2>
+
+                <div className="banner-grid">
+                    <div className="banner-card">
+                        <p>Pacientes</p>
+                        <h3>{filteredRecords.length}</h3>
+                    </div>
+
+                    <div className="banner-card">
+                        <FaSearch className="icon" />
                         <input
                             type="text"
                             placeholder="Buscar por ID, nombre, apellido o lugar..."
@@ -325,56 +321,57 @@ const WesternBlot = () => {
                             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                             className="search-input"
                         />
-                        <FaSearch className="card-icon" />
                     </div>
-                </div>
-                <div className="thirdBox">
-                    <div className="card-content1">
-                        <CiFilter className="card-icon" />
-                        <span className="card-title">Folio</span>
-                        <input
-                            type="number"
-                            placeholder="Min"
-                            value={folioDevelabRange.min}
-                            onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Max"
-                            value={folioDevelabRange.max}
-                            onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
-                        />
-                    </div>
-                </div>
-            </div>
-            <div className="banner">
-                <div className="card-content1">
-                    <CiFilter className="card-icon"/>
-                    <span className="card-title">Fecha Ingreso</span>
-                    <input
-                        type="date"
-                        value={fechaIngresoRange.start}
-                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
-                    />
-                    <input
-                        type="date"
-                        value={fechaIngresoRange.end}
-                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
-                    />
-                    {selectedRecords.length > 0 && (
-                        <PrintButtonMicro selectedAppointments={selectedRecords} />
-                    )}
 
+                    <div className="banner-card">
+                        <div className="filter-item">
+                            <CiFilter className="icon" />
+                            <span>Fecha Ingreso: </span>
+                            <input
+                                type="date"
+                                value={fechaIngresoRange.start}
+                                onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
+                            />
+                            <input
+                                type="date"
+                                value={fechaIngresoRange.end}
+                                onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="banner-card">
+                        <div className="filter-item">
+                            <CiFilter className="icon" />
+                            <span>Folio: </span>
+                            <input
+                                type="number"
+                                placeholder="Min"
+                                value={folioDevelabRange.min}
+                                onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Max"
+                                value={folioDevelabRange.max}
+                                onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="banner-card full-width-card">
+                        <div className="section-actions">
+                            {selectedRecords.length > 0 && (
+                                <PrintButtonMicro selectedAppointments={selectedRecords} />
+                            )}
+                            <button onClick={handleSelectAll}>Seleccionar</button>
+                            <button onClick={openBulkEditModal}>Editar</button>
+                            <button onClick={handleDownloadExcel}>Excel</button>
+                        </div>
+                    </div>
                 </div>
-                
             </div>
-            <div className="banner">
-                <div className="card-content1">
-                    <button onClick={handleSelectAll} className="buttondashboard">Seleccionar</button>
-                    <button onClick={openBulkEditModal} className="buttondashboard">Editar</button>
-                    <button onClick={handleDownloadExcel} className="buttondashboard"> Excel</button>
-                </div>
-            </div>
+
             <div className="appointments-list" style={{ overflowX: "auto" }}>
                 <table>
                     <thead>
@@ -385,7 +382,7 @@ const WesternBlot = () => {
                             <th>Estado</th>
                             <th>Fecha Precipitado</th>
                             <th>Fecha Lavado</th>
-                            <th>Técnico</th>
+                            <th>Analista</th>
                             <th>Status Proceso</th>
                             <th>Resultado WB</th>
                             <th>Elisa</th>
@@ -408,17 +405,19 @@ const WesternBlot = () => {
                                     <td>{record.folioDevelab}</td>
                                     <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
                                     <td>{record.estatusMuestra}</td>
-                                    <td>{record.fechaPrecipitado ? moment(record.fechaPrecipitado).format("YYYY-MM-DD") : 'N/A'}</td>
-                                    <td>{record.fechaLavado ? moment(record.fechaLavado).format("YYYY-MM-DD") : 'N/A'}</td>
+                                    <td>{moment(record.fechaPrecipitado).format("YYYY-MM-DD")}</td>
+                                    <td>{moment(record.fechaLavado).format("YYYY-MM-DD")}</td>
                                     <td>
                                         <select
                                             value={localChanges[record._id]?.tecnicoWB || record.tecnicoWB || ""}
                                             onChange={(e) => handleLocalChange(record._id, 'tecnicoWB', e.target.value)}
                                             className="input"
                                         >
-                                            <option value="">Seleccione una opción</option>
-                                            <option value="Técnico 1">Técnico 1</option>
-                                            <option value="Técnico 2">Técnico 2</option>
+                                            <option value="">Selecciona</option>
+                                            <option value="JEHR">JEHR</option>
+                                            <option value="ENTT">ENTT</option>
+                                            <option value="DKVG">DKVG</option>
+                                            <option value="JPRO">JPRO</option>
                                         </select>
                                     </td>
                                     <td>
@@ -446,18 +445,20 @@ const WesternBlot = () => {
                                     <td>{record.resultadoElisa}</td>
                                     <td>
                                         <button className="botontabla" onClick={(e) => {
-                                            e.stopPropagation(); // Prevent triggering the row click event
+                                            e.stopPropagation();
                                             handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
-                                        }}>Ver</button>
+                                        }}>
+                                            Ver
+                                        </button>
                                     </td>
                                     <td>
                                         <button
                                             className="botonactualizar"
                                             onClick={(e) => {
-                                                e.stopPropagation(); // Prevent triggering the row click event
-                                                handleUpdateField(record._id);
+                                                e.stopPropagation();
+                                                handleUpdateFields(record._id, localChanges[record._id]);
                                             }}
-                                            disabled={!localChanges[record._id]} // Deshabilitar si no hay cambios
+                                            disabled={!localChanges[record._id]}
                                         >
                                             Actualizar
                                         </button>
@@ -472,6 +473,7 @@ const WesternBlot = () => {
                     </tbody>
                 </table>
             </div>
+
             <Modal show={!!selectedAppointment} onClose={closeModal} appointment={selectedAppointment} />
             <BulkEditModal show={showBulkEditModal} onClose={closeBulkEditModal} onSave={handleBulkSave} />
         </section>

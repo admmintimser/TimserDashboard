@@ -76,7 +76,8 @@ const SidebarComponent = () => {
             </div>
             <MenuItem icon={<GiHamburgerMenu />}  onClick={() => setCollapsed(!collapsed)}>Menu</MenuItem>
 
-            <MenuItem icon={<TiHome />} component={<Link to="/" />}>Home</MenuItem>
+            <MenuItem icon={<TiHome />} component={<Link to="/dashboard" />}>Dashboard Registro</MenuItem>
+            <MenuItem icon={<TiHome />} component={<Link to="/home" />}>Home</MenuItem>
             
             <SubMenu label="Dashboard" icon={<RiDashboardFill />}>
               <MenuItem icon={<MdOutlineAssessment />} component={<Link to="/data-for-dashboard" />}>
@@ -111,6 +112,9 @@ const SidebarComponent = () => {
               </MenuItem>
               <MenuItem icon={<BsReception4 />} component={<Link to="/reception" />}>
                 Recepcion
+              </MenuItem>
+              <MenuItem icon={<BsReception4 />} component={<Link to="/receptionlab" />}>
+                Recepcion Lab
               </MenuItem>
               <MenuItem icon={<BsCardChecklist />} component={<Link to="/preventix" />}>
                 Preventix

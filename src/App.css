@@ -48,7 +48,13 @@ button:hover {
   border: 1px solid #ddd;
   border-radius: 5px;
 }
-
+.cuadrobusqueda{
+  width: 50%;
+  height: 100%;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin: 10px;
+}
 .buttondashboard {
   margin: 0 1%;
   font-size: 15px;
@@ -314,7 +320,7 @@ height: 900px;
 
 /* Responsivo y otros */
 
-@media (max-width: 1208px) {
+@media (max-width: 1400px) {
   .main-content {
     width: calc(100% - 10px);
   }
@@ -386,4 +392,111 @@ thead, th {
 
 .appointments-list{
   height: 1000px !important;
+}
+
+/* Contenedor general del banner */
+.unified-banner {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Título del banner */
+.banner-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #0d7a79;
+}
+
+/* Grid para organizar las tarjetas 2x2 */
+.banner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 20px;
+}
+
+/* Tarjetas dentro del banner */
+.banner-card {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-card.full-width-card {
+  grid-column: span 2;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+/* Estilos para las secciones internas */
+.banner-card p {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.banner-card h3 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #0d7a79;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #0d7a79;
+}
+
+.section-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between; /* Distribuye los botones equitativamente */
+}
+
+.section-actions button {
+  flex: 1; 
+  font-size: 16px;
+  font-weight: 600;
+  width: 150px;
+  color: #fff;
+  background-color: #0d7a79;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center; /* Asegura que el texto dentro de los botones esté centrado */
+}
+
+.section-actions button:hover {
+  background-color: #34BFB1;
+}
+
+
+
+.filter-item input {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.filter-item .icon {
+  font-size: 24px;
+  color: #0d7a79;
 }

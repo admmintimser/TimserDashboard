@@ -1,0 +1,197 @@
+/* home.css */
+
+/* Importando la fuente Poppins para un look moderno */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Estilo global del dashboard */
+body {
+  font-family: 'Poppins', sans-serif; /* Fuente Poppins */
+  background-color: #f0f2f5; /* Color de fondo claro */
+  color: #333; /* Color de texto principal */
+}
+
+.dashboard {
+  padding: 20px;
+  background-color: #f9fafb; /* Fondo del dashboard */
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50; /* Azul oscuro para el título */
+}
+
+/* Contenedor principal para las tarjetas del dashboard */
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.dashboard-card-home {
+  background-color: #ffffff; /* Fondo blanco para las tarjetas */
+  border-radius: 16px; /* Bordes redondeados */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  padding: 30px;
+  margin: 10px;
+  flex-basis: calc(33.333% - 20px); /* Responsivo: 3 columnas */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Efectos de hover */
+}
+
+.dashboard-card-home:hover {
+  transform: translateY(-10px); /* Efecto de flotación */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2); /* Sombra más intensa en hover */
+}
+
+.dashboard-card-home h2 {
+  font-size: 20px;
+  font-weight: 500;
+  color: #2c3e50; /* Título en azul oscuro */
+  margin-bottom: 15px;
+}
+
+.dashboard-card-home p {
+  font-size: 16px;
+  color: #7f8c8d; /* Texto en gris */
+  line-height: 1.5;
+}
+
+/* Contenedor para gráficos dentro de las tarjetas */
+.dashboard-card-home .chart-container {
+  margin-top: 25px;
+  height: 250px; /* Ajuste de altura para gráficos */
+}
+
+/* Estilos para botones */
+.button-primary {
+  background-color: #2980b9; /* Azul moderno */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.button-primary:hover {
+  background-color: #1f618d; /* Azul más oscuro en hover */
+}
+
+/* Botones secundarios */
+.button-secondary {
+  background-color: #27ae60; /* Verde moderno */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-secondary:hover {
+  background-color: #219150; /* Verde más oscuro en hover */
+}
+
+/* Diseño responsivo para pantallas más pequeñas */
+@media (max-width: 1024px) {
+  .dashboard-card-home {
+    flex-basis: calc(50% - 20px); /* Se ajusta a 2 columnas */
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-card-home {
+    flex-basis: calc(100% - 20px); /* 1 columna en móviles */
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-card-home {
+    padding: 20px; /* Menos padding en pantallas pequeñas */
+  }
+}
+
+/* Barras de progreso para visualización de datos */
+.progress-wrapper {
+  background-color: #ecf0f1;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 12px;
+  width: 100%;
+  margin: 20px 0;
+}
+
+.progress-bar {
+  background-color: #27ae60;
+  height: 100%;
+  width: 0;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+}
+
+/* Estilos para tablas */
+.table-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.table-container th, .table-container td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table-container th {
+  background-color: #ecf0f1;
+  color: #333;
+  font-weight: 600;
+}
+
+.table-container td {
+  color: #7f8c8d;
+}
+
+.table-container tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Input de búsqueda */
+.search-input {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #2980b9;
+}

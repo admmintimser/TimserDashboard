@@ -200,6 +200,7 @@ const Dashboard = () => {
         password: "7b5cbac342284010ac18f17ceba6364f",
       });
       const token = loginResponse.data.accessToken;
+      const mappedCustomerId = customerMapping[appointment.sampleLocation] || 1783;
       setTokenDevel(token);
 
       const patientData = {
@@ -212,7 +213,7 @@ const Dashboard = () => {
         gender: "F",
         email: appointment.email,
         comment: "",
-        customerId: -1,
+        customerId: mappedCustomerId,
         extraField1: "",
         extraField2: "",
         extraField3: "",
@@ -232,7 +233,7 @@ const Dashboard = () => {
       const fechaTomaValida = appointment.fechaToma ? moment(appointment.fechaToma).tz("America/Mexico_City") : moment().tz("America/Mexico_City");
       const sampleDate = fechaTomaValida.toISOString().slice(0, 16);
 
-      const mappedCustomerId = customerMapping[appointment.sampleLocation] || 1783;
+      
 
       const orderData = {
         branchId: 1,
@@ -503,8 +504,8 @@ const AppointmentTable = ({ filteredAppointments, editingAppointment, handleEdit
               <td colSpan="8">
                 <form onSubmit={handleFormSubmit}>
                   <input type="text" name="patientFirstName" value={formValues.patientFirstName} onChange={handleInputChange} className="input" />
-                  <input type="text" name="email" value={formValues.email} onChange={handleInputChange} className="input" />
                   <input type="text" name="patientLastName" value={formValues.patientLastName} onChange={handleInputChange} className="input" />
+                  <input type="text" name="email" value={formValues.email} onChange={handleInputChange} className="input" />
                   <input type="text" name="sampleLocation" value={formValues.sampleLocation} onChange={handleInputChange} className="input" />
                   <input type="date" name="birthDate" value={formValues.birthDate} onChange={handleInputChange} className="input" />
                   <input type="text" name="fastingHours" value={formValues.fastingHours} onChange={handleInputChange} className="input" />

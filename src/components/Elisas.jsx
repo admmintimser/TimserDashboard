@@ -10,31 +10,24 @@ import { CiFilter } from "react-icons/ci";
 import moment from "moment-timezone";
 import * as XLSX from 'xlsx';
 import { DNA } from 'react-loader-spinner';
-
-const Modal = ({ show, onClose, appointment }) => {
-    if (!show) {
-        return null;
-    }
-
-    return (
-        <div className="modal" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <span className="close" onClick={onClose}>&times;</span>
-                <h2>Informe Médico del Paciente</h2>
-                {/* Información detallada del paciente */}
-            </div>
-        </div>
-    );
-};
+import Modal from './Modal'; // Importar el componente Modal correcto
 
 const BulkEditModal = ({ show, onClose, onSave }) => {
     const [estatusElisa, setEstatusElisa] = useState("");
     const [lavoElisa, setLavoElisa] = useState("");
-    const [numeroPlaca, setNumeroPlaca] = useState(""); // Agregar useState para numeroPlaca
-    const [lugarProceso, setLugarProceso] = useState(""); // Agregar useState para lugarProceso
+    const [numeroPlaca, setNumeroPlaca] = useState("");
+    const [lugarProceso, setLugarProceso] = useState("");
 
     const handleSave = () => {
-        onSave(estatusElisa, lavoElisa, numeroPlaca, lugarProceso); // Asegurar que todos los campos sean enviados
+        const bulkChanges = {
+            estatusElisa,  // String value
+            lavoElisa,     // String value
+            numeroPlaca,   // String value
+            lugarProceso   // String value
+        };
+
+        // Ensure an object is passed to onSave
+        onSave(bulkChanges); 
     };
 
     if (!show) {
@@ -67,8 +60,8 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                         type="text"
                         name="numeroPlaca"
                         placeholder="Número de Placa"
-                        value={numeroPlaca} // Usar el estado para numeroPlaca
-                        onChange={(e) => setNumeroPlaca(e.target.value)} // Cambiar el estado de numeroPlaca
+                        value={numeroPlaca}
+                        onChange={(e) => setNumeroPlaca(e.target.value)}
                         className="input"
                     />
                     <select value={lugarProceso} onChange={(e) => setLugarProceso(e.target.value)} className="input">
@@ -76,7 +69,9 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                         <option value="MX">MX</option>
                         <option value="EUA">EUA</option>
                     </select>
-                    <button type="button" onClick={handleSave} className="save-button">Guardar</button>
+                    <button type="button" onClick={handleSave} className="save-button">
+                        Guardar
+                    </button>
                 </form>
             </div>
         </div>
@@ -144,6 +139,32 @@ const Elisas = () => {
         }
     }, [localChanges]);
 
+    const handleUpdateFields = useCallback(async (preventixId, changes) => {
+        if (!changes || typeof changes !== 'object' || Object.keys(changes).length === 0) {
+            console.error("Cambios inválidos:", changes);
+            return;
+        }
+
+        try {
+            console.log("Enviando cambios:", changes);
+
+            await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${preventixId}`, changes, { withCredentials: true });
+
+            setPreventixRecords((prevRecords) =>
+                prevRecords.map((record) =>
+                    record._id === preventixId ? { ...record, ...changes } : record
+                )
+            );
+            setLocalChanges((prevChanges) => {
+                const { [preventixId]: _, ...rest } = prevChanges;
+                return rest;
+            });
+            toast.success(`Actualizado con éxito`);
+        } catch (error) {
+            toast.error(error.response?.data?.message || `Error al actualizar el registro ${preventixId}`);
+        }
+    }, []);
+
     const handleIdCuestionarioClick = useCallback((appointment) => {
         if (!appointment) {
             toast.error("El ID de la cita no está disponible.");
@@ -164,22 +185,46 @@ const Elisas = () => {
     const closeBulkEditModal = useCallback(() => {
         setShowBulkEditModal(false);
     }, []);
-
-    const handleBulkSave = useCallback(async (estatusElisa, lavoElisa, numeroPlaca, lugarProceso) => {
+    const handleBulkSave = useCallback(async (bulkChanges) => {
         try {
-            const updatePromises = selectedRecords.map((record) =>
-                handleUpdateField(record._id, "estatusElisa", estatusElisa)
-                    .then(() => handleUpdateField(record._id, "lavoElisa", lavoElisa))
-                    .then(() => handleUpdateField(record._id, "numeroPlaca", numeroPlaca))
-                    .then(() => handleUpdateField(record._id, "lugarProceso", lugarProceso))
-            );
-            await Promise.all(updatePromises);
+            const promises = selectedRecords.map((record) => {
+                const changes = {};
+                Object.entries(bulkChanges).forEach(([key, value]) => {
+                    // Only add valid string values to changes
+                    if (value && typeof value === 'string') {
+                        changes[key] = value;
+                    }
+                });
+    
+                // Only update if there are valid changes
+                if (Object.keys(changes).length > 0) {
+                    return handleUpdateFields(record._id, changes);
+                } else {
+                    return Promise.resolve();  // No changes, resolve immediately
+                }
+            });
+    
+            await Promise.all(promises);
+            toast.success(`Pacientes actualizados correctamente (${selectedRecords.length})`);
             setSelectedRecords([]);
-            closeBulkEditModal();
+            setShowBulkEditModal(false);
         } catch (error) {
             toast.error("Error al actualizar los registros seleccionados");
         }
-    }, [selectedRecords, handleUpdateField, closeBulkEditModal]);
+    }, [selectedRecords, handleUpdateFields]);
+    
+    
+    const handleSave = () => {
+        const bulkChanges = {
+            estatusElisa,
+            lavoElisa,
+            numeroPlaca,
+            lugarProceso
+        };
+
+        console.log('Datos a enviar en la edición masiva:', bulkChanges);
+        onSave(bulkChanges); // Enviar el objeto completo de cambios
+    };
 
     const getRowColor = useCallback((record) => {
         if (!record.tiempoFinProceso) {
@@ -231,9 +276,16 @@ const Elisas = () => {
                 (folioDevelabRange.max === "" || record.folioDevelab <= folioDevelabRange.max);
             const fechaIngresoMatch = (fechaIngresoRange.start === "" || moment(record.tiempoInicioProceso).isSameOrAfter(fechaIngresoRange.start)) &&
                 (fechaIngresoRange.end === "" || moment(record.tiempoInicioProceso).isSameOrBefore(fechaIngresoRange.end));
-            return folioDevelabMatch && fechaIngresoMatch;
+            const searchTermMatch = searchTerm === "" || (
+                record._id.toLowerCase().includes(searchTerm) ||
+                (record.appointmentId && record.appointmentId._id.toLowerCase().includes(searchTerm)) ||
+                (record.estatusMuestra && record.estatusMuestra.toLowerCase().includes(searchTerm)) ||
+                (record.tecnicoElisa && record.tecnicoElisa.toLowerCase().includes(searchTerm)) ||
+                (record.folioDevelab && record.folioDevelab.toString().includes(searchTerm))
+            );
+            return folioDevelabMatch && fechaIngresoMatch && searchTermMatch;
         });
-    }, [preventixRecords, folioDevelabRange, fechaIngresoRange]);
+    }, [preventixRecords, folioDevelabRange, fechaIngresoRange, searchTerm]);
 
     const handleDownloadExcel = useCallback(() => {
         const filteredData = selectedRecords.map(record => ({
@@ -275,78 +327,89 @@ const Elisas = () => {
             </div>
         );
     }
+    
 
     return (
         <section className="dashboard page">
-            <div className="banner">
-                <div className="secondBox">
-                    <p>Pacientes</p>
-                    <h3>{filteredRecords.length}</h3>
-                </div>
-                <div className="thirdBox">
-                    <div className="card-content">
-                        <input
-                            type="text"
-                            placeholder="Buscar por ID, nombre, apellido o lugar..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
-                            className="search-input"
-                        />
-                        <FaSearch className="card-icon" />
-                    </div>
-                </div>
-                <div className="thirdBox">
-                    <div className="card-content1">
-                        <CiFilter className="card-icon" />
-                        <span className="card-title">Folio</span>
-                        <input
-                            type="number"
-                            placeholder="Min"
-                            value={folioDevelabRange.min}
-                            onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Max"
-                            value={folioDevelabRange.max}
-                            onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
-                        />
-                    </div>
-                </div>
-            </div>
-            <div className="banner">
-                <div className="card-content1">
-                    <CiFilter className="card-icon"/>
-                    <span className="card-title">Fecha Ingreso</span>
-                    <input
-                        type="date"
-                        value={fechaIngresoRange.start}
-                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
-                    />
-                    <input
-                        type="date"
-                        value={fechaIngresoRange.end}
-                        onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
-                    />
-                </div>
-            </div>
-            <div className="banner">
-                <div className="card-content1">
-                    <button onClick={handleSelectAll} className="buttondashboard">Seleccionar</button>
-                    <button onClick={openBulkEditModal} className="buttondashboard">Editar</button>
-                    <button onClick={handleDownloadExcel} className="buttondashboard"> Excel</button>
-                </div>
-            </div>
+            <div className="unified-banner">
+  <h2 className="banner-title">Elisa - Inmunoquica</h2> {/* Título principal */}
+
+  <div className="banner-grid">
+    {/* Tarjeta de Pacientes */}
+    <div className="banner-card">
+      <p>Pacientes</p>
+      <h3>{filteredRecords.length}</h3>
+    </div>
+
+    {/* Tarjeta de búsqueda */}
+    <div className="banner-card">
+    <FaSearch className="icon" />
+      <input
+        type="text"
+        placeholder="Buscar por ID, nombre, apellido o lugar..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+        className="search-input"
+      />
+      
+    </div>
+
+    {/* Tarjeta de Fecha Ingreso */}
+    <div className="banner-card">
+      <div className="filter-item">
+        <CiFilter className="icon" />
+        <span>Fecha Ingreso: </span>
+        <input
+          type="date"
+          value={fechaIngresoRange.start}
+          onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
+        />
+        <input
+          type="date"
+          value={fechaIngresoRange.end}
+          onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
+        />
+      </div>
+    </div>
+
+    {/* Tarjeta de Folio */}
+    <div className="banner-card">
+      <div className="filter-item">
+        <CiFilter className="icon" />
+        <span>Folio:  </span>
+        <input
+          type="number"
+          placeholder="Min"
+          value={folioDevelabRange.min}
+          onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })}
+        />
+        <input
+          type="number"
+          placeholder="Max"
+          value={folioDevelabRange.max}
+          onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
+        />
+      </div>
+    </div>
+
+    {/* Tarjeta de Botones de acción */}
+    <div className="banner-card full-width-card">
+      <div className="section-actions">
+        <button onClick={handleSelectAll}>Seleccionar</button>
+        <button onClick={openBulkEditModal}>Editar</button>
+        <button onClick={handleDownloadExcel}>Excel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
             
             <div className="appointments-list" style={{ overflowX: "auto" }}>
                 <table>
-                    <caption>
-                        <h1 className="dashboard-header">Elisa - Inmunoquica</h1>
-                    </caption>
                     <thead>
                         <tr>
                             <th>Seleccionar</th>
-                            <th>Folio Devellab</th>
+                            <th>Folio Develab</th>
                             <th>Hora Inicio</th>
                             <th>Estado Muestra</th>
                             <th>Temperatura</th>

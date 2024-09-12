@@ -1651,3 +1651,35 @@ tbody tr:hover {
 .status-pending {
   background-color: #f44336;
 }
+.dashboard-card-home {
+  background-color: #f0f4f8; /* Un color de fondo más suave */
+  border-radius: 12px; /* Bordes más redondeados */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+  padding: 25px; /* Más espacio interno */
+  margin: 15px;
+  flex-basis: calc(30% - 30px); /* Ajuste del tamaño con mayor flexibilidad */
+  text-align: left; /* Alineación del texto a la izquierda */
+  transition: transform 0.2s ease-in-out; /* Animación en hover */
+}
+
+.dashboard-card-home:hover {
+  transform: translateY(-10px); /* Efecto de flotación en hover */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Sombra más fuerte en hover */
+}
+
+.dashboard-card-home h2 {
+  font-size: 18px; /* Tamaño de fuente ajustado */
+  color: #333; /* Color del texto */
+  margin-bottom: 10px;
+}
+
+.dashboard-card-home p {
+  font-size: 14px;
+  color: #666; /* Color de texto secundario */
+}
+
+.dashboard-card-home .chart-container {
+  margin-top: 20px;
+  height: 200px; /* Ajuste del tamaño para gráficos */
+}
+
