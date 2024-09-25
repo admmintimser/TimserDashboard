@@ -39,8 +39,8 @@ import "./App.css";
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, admin, setAdmin, userRole, setUserRole } = useContext(Context);
   const location = useLocation();
-  const navigate = useNavigate();  // Necesitamos el hook `useNavigate` para redirigir al login
-  const [isLoading, setIsLoading] = useState(true); // Estado para manejar la carga inicial
+  const navigate = useNavigate();  // Hook para redirigir al login
+  const [isLoading, setIsLoading] = useState(true); // Estado de carga inicial
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -51,9 +51,11 @@ const App = () => {
           setIsAuthenticated(true);
           setAdmin(response.data.user);
           setUserRole(response.data.user.role);
-          localStorage.setItem("isAuthenticated", true);
+          localStorage.setItem("isAuthenticated", "true");
           localStorage.setItem("admin", JSON.stringify(response.data.user));
           localStorage.setItem("userRole", response.data.user.role);
+        } else {
+          throw new Error("No user data found");
         }
 
         const lastPath = localStorage.getItem("lastPath");
@@ -62,9 +64,12 @@ const App = () => {
         }
       } catch (error) {
         if (error.response && error.response.status === 401) {
-          // Si la respuesta es 401, redirige al login
-          navigate("/login");
+          // Si estamos en una ruta que no es /login, redirige al login
+          if (location.pathname !== '/login') {
+            navigate("/login");
+          }
         } else {
+          // Limpia el estado si hay un error
           setIsAuthenticated(false);
           setAdmin({});
           setUserRole("");
@@ -76,9 +81,14 @@ const App = () => {
         setIsLoading(false); // Termina la carga inicial
       }
     };
-    fetchUser();
-  }, [setIsAuthenticated, setAdmin, setUserRole, location.pathname, navigate]);
 
+    // Solo ejecuta fetchUser si el usuario no está autenticado
+    if (!isAuthenticated) {
+      fetchUser();
+    }
+  }, [setIsAuthenticated, setAdmin, setUserRole, location.pathname, navigate, isAuthenticated]);
+
+  // Guarda la última ruta en el localStorage solo si el usuario está autenticado
   useEffect(() => {
     if (isAuthenticated) {
       localStorage.setItem("lastPath", location.pathname);
@@ -107,7 +117,7 @@ const App = () => {
       Sidebar = SidebarAdminLab;
       break;
     default:
-      Sidebar = SidebarComponent; // Default to admin or generic sidebar
+      Sidebar = SidebarComponent; // Sidebar genérico si no hay rol específico
   }
 
   // Muestra un mensaje de carga o spinner hasta que los datos estén listos
@@ -135,42 +145,42 @@ const App = () => {
   }
 
   return (
-    <div className="app-container">
-      <Sidebar />
-      <div className="main-content">
-        <Routes>
-          <Route path="/" element={<Navigate to={initialRoute} />} /> {/* Redirecciona según el rol */}
-          <Route path="/login" element={<Login />} />
+      <div className="app-container">
+        <Sidebar />
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Navigate to={initialRoute} />} /> {/* Redirecciona según el rol */}
+            <Route path="/login" element={<Login />} />
 
-          {/* Rutas abiertas a todos los roles por ahora */}
-          <Route path="/doctor/addnew" element={<AddNewDoctor />} />
-          <Route path="/admin/addnew" element={<AddNewAdmin />} />
-          <Route path="/user/addnew" element={<AddNewUser />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/flebos" element={<Flebos />} />
-          <Route path="/reception" element={<Recepcion />} />
-          <Route path="/receptionlab" element={<RecepcionLab />} />
-          <Route path="/preventix" element={<PreventixDashboard />} />
-          <Route path="/dashclient" element={<DashboardClient />} />
-          <Route path="/elisas" element={<Elisas />} />
-          <Route path="/westernblot" element={<WesternBlot />} />
-          <Route path="/data-for-dashboard" element={<Informe />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/cuestionario" element={<Cuestionario />} />
-          <Route path="/validacion" element={<Validacion />} />
-          <Route path="/liberacion" element={<Liberacion />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/estatus-preventix-dashboard" element={<EstatusPreventixDashboard />} />
-          <Route path="/reporte" element={<MuestrasLiberadas />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/home" element={<Home />} />
+            {/* Rutas abiertas a todos los roles por ahora */}
+            <Route path="/doctor/addnew" element={<AddNewDoctor />} />
+            <Route path="/admin/addnew" element={<AddNewAdmin />} />
+            <Route path="/user/addnew" element={<AddNewUser />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/flebos" element={<Flebos />} />
+            <Route path="/reception" element={<Recepcion />} />
+            <Route path="/receptionlab" element={<RecepcionLab />} />
+            <Route path="/preventix" element={<PreventixDashboard />} />
+            <Route path="/dashclient" element={<DashboardClient />} />
+            <Route path="/elisas" element={<Elisas />} />
+            <Route path="/westernblot" element={<WesternBlot />} />
+            <Route path="/data-for-dashboard" element={<Informe />} />
+            <Route path="/clientes" element={<Clientes />} />
+            <Route path="/cuestionario" element={<Cuestionario />} />
+            <Route path="/validacion" element={<Validacion />} />
+            <Route path="/liberacion" element={<Liberacion />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/estatus-preventix-dashboard" element={<EstatusPreventixDashboard />} />
+            <Route path="/reporte" element={<MuestrasLiberadas />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/home" element={<Home />} />
 
-          <Route path="*" element={<Navigate to={initialRoute} />} /> {/* Redirecciona a la ruta inicial si la ruta es inválida */}
-        </Routes>
-        <ToastContainer position="top-center" />
+            <Route path="*" element={<Navigate to={initialRoute} />} /> {/* Redirecciona a la ruta inicial si la ruta es inválida */}
+          </Routes>
+          <ToastContainer position="top-center" />
+        </div>
       </div>
-    </div>
   );
 };
 
