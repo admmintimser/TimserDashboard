@@ -20,14 +20,13 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
 
     const handleSave = () => {
         const bulkChanges = {
-            estatusElisa,  // String value
-            lavoElisa,     // String value
-            numeroPlaca,   // String value
-            lugarProceso   // String value
+            estatusElisa,
+            lavoElisa,
+            numeroPlaca,
+            lugarProceso
         };
 
-        // Ensure an object is passed to onSave
-        onSave(bulkChanges); 
+        onSave(bulkChanges);
     };
 
     if (!show) {
@@ -78,7 +77,6 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
     );
 };
 
-
 const Elisas = () => {
     const [preventixRecords, setPreventixRecords] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -87,19 +85,31 @@ const Elisas = () => {
     const [showBulkEditModal, setShowBulkEditModal] = useState(false);
     const [folioDevelabRange, setFolioDevelabRange] = useState({ min: "", max: "" });
     const [fechaIngresoRange, setFechaIngresoRange] = useState({ start: "", end: "" });
-    const [localChanges, setLocalChanges] = useState({}); // Estado para almacenar cambios locales
+    const [localChanges, setLocalChanges] = useState({});
     const { isAuthenticated } = useContext(Context);
 
     const fetchPreventixData = useCallback(async () => {
         try {
             const response = await axios.get("https://webapitimser.azurewebsites.net/api/v1/preventix/getall", { withCredentials: true });
             if (response.data.preventix) {
-                setPreventixRecords(response.data.preventix.reverse());
+                const allRecords = response.data.preventix;
+
+                // Filtrar registros donde temperatura y estatusMuestra son diferentes de null
+                const filteredRecords = allRecords.filter(record =>
+                    record.temperatura != null && record.estatusMuestra != null
+                );
+
+                // Ordenar los registros del más reciente al más antiguo
+                const sortedRecords = filteredRecords.sort((a, b) =>
+                    new Date(b.tiempoInicioProceso) - new Date(a.tiempoInicioProceso)
+                );
+
+                setPreventixRecords(sortedRecords);
             } else {
-                throw new Error("No Preventix data received");
+                throw new Error("No se recibieron datos de Preventix");
             }
         } catch (error) {
-            toast.error("Error fetching Preventix records: " + error.message);
+            toast.error("Error al obtener registros de Preventix: " + error.message);
             setPreventixRecords([]);
         }
     }, []);
@@ -118,12 +128,15 @@ const Elisas = () => {
         }));
     };
 
-    const handleUpdateField = useCallback(async (preventixId) => {
-        const changes = localChanges[preventixId];
-        if (!changes) return; // Si no hay cambios, no hacer nada
+    const handleUpdateFields = useCallback(async (preventixId, changes) => {
+        if (!changes || typeof changes !== 'object' || Object.keys(changes).length === 0) {
+            console.error("Cambios inválidos:", changes);
+            return;
+        }
 
         try {
             await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${preventixId}`, changes, { withCredentials: true });
+
             setPreventixRecords((prevRecords) =>
                 prevRecords.map((record) =>
                     record._id === preventixId ? { ...record, ...changes } : record
@@ -134,32 +147,6 @@ const Elisas = () => {
                 return rest;
             });
             toast.success(`Registro ${preventixId} actualizado con éxito`);
-        } catch (error) {
-            toast.error(error.response?.data?.message || `Error al actualizar el registro ${preventixId}`);
-        }
-    }, [localChanges]);
-
-    const handleUpdateFields = useCallback(async (preventixId, changes) => {
-        if (!changes || typeof changes !== 'object' || Object.keys(changes).length === 0) {
-            console.error("Cambios inválidos:", changes);
-            return;
-        }
-
-        try {
-            console.log("Enviando cambios:", changes);
-
-            await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${preventixId}`, changes, { withCredentials: true });
-
-            setPreventixRecords((prevRecords) =>
-                prevRecords.map((record) =>
-                    record._id === preventixId ? { ...record, ...changes } : record
-                )
-            );
-            setLocalChanges((prevChanges) => {
-                const { [preventixId]: _, ...rest } = prevChanges;
-                return rest;
-            });
-            toast.success(`Actualizado con éxito`);
         } catch (error) {
             toast.error(error.response?.data?.message || `Error al actualizar el registro ${preventixId}`);
         }
@@ -185,25 +172,24 @@ const Elisas = () => {
     const closeBulkEditModal = useCallback(() => {
         setShowBulkEditModal(false);
     }, []);
+
     const handleBulkSave = useCallback(async (bulkChanges) => {
         try {
             const promises = selectedRecords.map((record) => {
                 const changes = {};
                 Object.entries(bulkChanges).forEach(([key, value]) => {
-                    // Only add valid string values to changes
                     if (value && typeof value === 'string') {
                         changes[key] = value;
                     }
                 });
-    
-                // Only update if there are valid changes
+
                 if (Object.keys(changes).length > 0) {
                     return handleUpdateFields(record._id, changes);
                 } else {
-                    return Promise.resolve();  // No changes, resolve immediately
+                    return Promise.resolve();
                 }
             });
-    
+
             await Promise.all(promises);
             toast.success(`Pacientes actualizados correctamente (${selectedRecords.length})`);
             setSelectedRecords([]);
@@ -212,19 +198,6 @@ const Elisas = () => {
             toast.error("Error al actualizar los registros seleccionados");
         }
     }, [selectedRecords, handleUpdateFields]);
-    
-    
-    const handleSave = () => {
-        const bulkChanges = {
-            estatusElisa,
-            lavoElisa,
-            numeroPlaca,
-            lugarProceso
-        };
-
-        console.log('Datos a enviar en la edición masiva:', bulkChanges);
-        onSave(bulkChanges); // Enviar el objeto completo de cambios
-    };
 
     const getRowColor = useCallback((record) => {
         if (!record.tiempoFinProceso) {
@@ -272,18 +245,20 @@ const Elisas = () => {
 
     const filterRecords = useCallback(() => {
         return preventixRecords.filter(record => {
+            const temperaturaValid = record.temperatura != null;
+            const estatusMuestraValid = record.estatusMuestra != null;
+
             const folioDevelabMatch = (folioDevelabRange.min === "" || record.folioDevelab >= folioDevelabRange.min) &&
                 (folioDevelabRange.max === "" || record.folioDevelab <= folioDevelabRange.max);
             const fechaIngresoMatch = (fechaIngresoRange.start === "" || moment(record.tiempoInicioProceso).isSameOrAfter(fechaIngresoRange.start)) &&
                 (fechaIngresoRange.end === "" || moment(record.tiempoInicioProceso).isSameOrBefore(fechaIngresoRange.end));
             const searchTermMatch = searchTerm === "" || (
-                record._id.toLowerCase().includes(searchTerm) ||
-                (record.appointmentId && record.appointmentId._id.toLowerCase().includes(searchTerm)) ||
-                (record.estatusMuestra && record.estatusMuestra.toLowerCase().includes(searchTerm)) ||
-                (record.tecnicoElisa && record.tecnicoElisa.toLowerCase().includes(searchTerm)) ||
-                (record.folioDevelab && record.folioDevelab.toString().includes(searchTerm))
+                record.folioDevelab?.toString().includes(searchTerm) ||
+                record.estatusMuestra?.toLowerCase().includes(searchTerm) ||
+                record.tecnicoElisa?.toLowerCase().includes(searchTerm)
             );
-            return folioDevelabMatch && fechaIngresoMatch && searchTermMatch;
+
+            return temperaturaValid && estatusMuestraValid && folioDevelabMatch && fechaIngresoMatch && searchTermMatch;
         });
     }, [preventixRecords, folioDevelabRange, fechaIngresoRange, searchTerm]);
 
@@ -327,192 +302,184 @@ const Elisas = () => {
             </div>
         );
     }
-    
 
     return (
         <section className="dashboard page">
             <div className="unified-banner">
-  <h2 className="banner-title">Elisa - Inmunoquica</h2> {/* Título principal */}
+                <h2 className="banner-title">Elisa - Inmunoquica</h2>
 
-  <div className="banner-grid">
-    {/* Tarjeta de Pacientes */}
-    <div className="banner-card">
-      <p>Pacientes</p>
-      <h3>{filteredRecords.length}</h3>
-    </div>
+                <div className="banner-grid">
+                    <div className="banner-card">
+                        <p>Pacientes</p>
+                        <h3>{filteredRecords.length}</h3>
+                    </div>
 
-    {/* Tarjeta de búsqueda */}
-    <div className="banner-card">
-    <FaSearch className="icon" />
-      <input
-        type="text"
-        placeholder="Buscar por ID, nombre, apellido o lugar..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
-        className="search-input"
-      />
-      
-    </div>
+                    <div className="banner-card">
+                        <FaSearch className="icon" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por Folio, estado, técnico..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+                            className="search-input"
+                        />
+                    </div>
 
-    {/* Tarjeta de Fecha Ingreso */}
-    <div className="banner-card">
-      <div className="filter-item">
-        <CiFilter className="icon" />
-        <span>Fecha Ingreso: </span>
-        <input
-          type="date"
-          value={fechaIngresoRange.start}
-          onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
-        />
-        <input
-          type="date"
-          value={fechaIngresoRange.end}
-          onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
-        />
-      </div>
-    </div>
+                    <div className="banner-card">
+                        <div className="filter-item">
+                            <CiFilter className="icon" />
+                            <span>Fecha Ingreso: </span>
+                            <input
+                                type="date"
+                                value={fechaIngresoRange.start}
+                                onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, start: e.target.value })}
+                            />
+                            <input
+                                type="date"
+                                value={fechaIngresoRange.end}
+                                onChange={(e) => setFechaIngresoRange({ ...fechaIngresoRange, end: e.target.value })}
+                            />
+                        </div>
+                    </div>
 
-    {/* Tarjeta de Folio */}
-    <div className="banner-card">
-      <div className="filter-item">
-        <CiFilter className="icon" />
-        <span>Folio:  </span>
-        <input
-          type="number"
-          placeholder="Min"
-          value={folioDevelabRange.min}
-          onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })}
-        />
-        <input
-          type="number"
-          placeholder="Max"
-          value={folioDevelabRange.max}
-          onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
-        />
-      </div>
-    </div>
+                    <div className="banner-card">
+                        <div className="filter-item">
+                            <CiFilter className="icon" />
+                            <span>Folio: </span>
+                            <input
+                                type="number"
+                                placeholder="Min"
+                                value={folioDevelabRange.min}
+                                onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, min: e.target.value })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Max"
+                                value={folioDevelabRange.max}
+                                onChange={(e) => setFolioDevelabRange({ ...folioDevelabRange, max: e.target.value })}
+                            />
+                        </div>
+                    </div>
 
-    {/* Tarjeta de Botones de acción */}
-    <div className="banner-card full-width-card">
-      <div className="section-actions">
-        <button onClick={handleSelectAll}>Seleccionar</button>
-        <button onClick={openBulkEditModal}>Editar</button>
-        <button onClick={handleDownloadExcel}>Excel</button>
-      </div>
-    </div>
-  </div>
-</div>
+                    <div className="banner-card full-width-card">
+                        <div className="section-actions">
+                            <button onClick={handleSelectAll}>Seleccionar</button>
+                            <button onClick={openBulkEditModal}>Editar</button>
+                            <button onClick={handleDownloadExcel}>Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            
             <div className="appointments-list" style={{ overflowX: "auto" }}>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Seleccionar</th>
-                            <th>Folio Develab</th>
-                            <th>Hora Inicio</th>
-                            <th>Estado Muestra</th>
-                            <th>Temperatura</th>
-                            <th>Estado Elisa</th>
-                            <th>Personal</th>
-                            <th>Placa Proceso</th>
-                            <th>Ubicación Proceso</th>
-                            <th>Resultado Elisa</th>
-                            <th>Resultado WB</th>
-                            <th>Cuestionario</th>
-                            <th>Actualizar</th>
-                        </tr>
+                    <tr>
+                        <th>Seleccionar</th>
+                        <th>Folio Develab</th>
+                        <th>Hora Inicio</th>
+                        <th>Estado Muestra</th>
+                        <th>Temperatura</th>
+                        <th>Estado Elisa</th>
+                        <th>Personal</th>
+                        <th>Placa Proceso</th>
+                        <th>Ubicación Proceso</th>
+                        <th>Resultado Elisa</th>
+                        <th>Resultado WB</th>
+                        <th>Cuestionario</th>
+                        <th>Actualizar</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {filteredRecords.length > 0 ? (
-                            filteredRecords.map((record) => (
-                                <tr key={record._id}>
-                                    <td>
-                                        <input type="checkbox" className="roundedOne" checked={selectedRecords.includes(record)} onChange={() => handleSelectRecord(record)} />
-                                    </td>
-                                    <td>{record.folioDevelab}</td>
-                                    <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
-                                    <td>{record.estatusMuestra}</td>
-                                    <td>{record.temperatura}</td>
-                                    <td>
-                                        <select
-                                            value={localChanges[record._id]?.estatusElisa || record.estatusElisa || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'estatusElisa', e.target.value)}
-                                            className="input"
-                                        >
-                                            <option value="">Seleccione una opción</option>
-                                            <option value="Recubrimiento">Recubrimiento</option>
-                                            <option value="Bloqueo">Bloqueo</option>
-                                            <option value="Muestra">Muestra</option>
-                                            <option value="Lavado">Lavado</option>
-                                            <option value="Anticuerpo de Detección">Anticuerpo de Detección</option>
-                                            <option value="Sustrato">Sustrato</option>
-                                            <option value="Detención">Detención</option>
-                                            <option value="Lectura">Lectura</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            value={localChanges[record._id]?.lavoElisa || record.lavoElisa || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'lavoElisa', e.target.value)}
-                                            className="input"
-                                        >
-                                            <option value="">Seleccione Personal</option>
-                                            <option value="JCEG">JCEG</option>
-                                            <option value="PRF">PRF</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            value={localChanges[record._id]?.numeroPlaca || record.numeroPlaca || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'numeroPlaca', e.target.value)}
-                                        />
-                                    </td>
-                                    <td>
-                                        <select
-                                            value={localChanges[record._id]?.lugarProceso || record.lugarProceso || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'lugarProceso', e.target.value)}
-                                            className="input"
-                                        >
-                                            <option value="">Seleccione una opción</option>
-                                            <option value="MX">MX</option>
-                                            <option value="EUA">EUA</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            value={localChanges[record._id]?.resultadoElisa || record.resultadoElisa || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'resultadoElisa', e.target.value)}
-                                        />
-                                    </td>
-                                    <td>{record.resultadoWesternBlot}</td>
-                                    <td>
-                                        <button className="botontabla" onClick={(e) => {
-                                            e.stopPropagation(); // Prevent triggering the row click event
-                                            handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
-                                        }}>Ver</button>
-                                    </td>
-                                    <td>
-                                        <button
-                                            className="botonactualizar"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Prevent triggering the row click event
-                                                handleUpdateField(record._id);
-                                            }}
-                                            disabled={!localChanges[record._id]} // Deshabilitar si no hay cambios
-                                        >
-                                            Actualizar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="12">No se encontraron registros de Preventix.</td>
+                    {filteredRecords.length > 0 ? (
+                        filteredRecords.map((record) => (
+                            <tr key={record._id}>
+                                <td>
+                                    <input type="checkbox" className="roundedOne" checked={selectedRecords.includes(record)} onChange={() => handleSelectRecord(record)} />
+                                </td>
+                                <td>{record.folioDevelab}</td>
+                                <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
+                                <td>{record.estatusMuestra}</td>
+                                <td>{record.temperatura}</td>
+                                <td>
+                                    <select
+                                        value={localChanges[record._id]?.estatusElisa || record.estatusElisa || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'estatusElisa', e.target.value)}
+                                        className="input"
+                                    >
+                                        <option value="">Seleccione una opción</option>
+                                        <option value="Recubrimiento">Recubrimiento</option>
+                                        <option value="Bloqueo">Bloqueo</option>
+                                        <option value="Muestra">Muestra</option>
+                                        <option value="Lavado">Lavado</option>
+                                        <option value="Anticuerpo de Detección">Anticuerpo de Detección</option>
+                                        <option value="Sustrato">Sustrato</option>
+                                        <option value="Detención">Detención</option>
+                                        <option value="Lectura">Lectura</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select
+                                        value={localChanges[record._id]?.lavoElisa || record.lavoElisa || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'lavoElisa', e.target.value)}
+                                        className="input"
+                                    >
+                                        <option value="">Seleccione Personal</option>
+                                        <option value="JCEG">JCEG</option>
+                                        <option value="PRF">PRF</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={localChanges[record._id]?.numeroPlaca || record.numeroPlaca || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'numeroPlaca', e.target.value)}
+                                    />
+                                </td>
+                                <td>
+                                    <select
+                                        value={localChanges[record._id]?.lugarProceso || record.lugarProceso || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'lugarProceso', e.target.value)}
+                                        className="input"
+                                    >
+                                        <option value="">Seleccione una opción</option>
+                                        <option value="MX">MX</option>
+                                        <option value="EUA">EUA</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={localChanges[record._id]?.resultadoElisa || record.resultadoElisa || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'resultadoElisa', e.target.value)}
+                                    />
+                                </td>
+                                <td>{record.resultadoWesternBlot}</td>
+                                <td>
+                                    <button className="botontabla" onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
+                                    }}>Ver</button>
+                                </td>
+                                <td>
+                                    <button
+                                        className="botonactualizar"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUpdateFields(record._id, localChanges[record._id]);
+                                        }}
+                                        disabled={!localChanges[record._id]}
+                                    >
+                                        Actualizar
+                                    </button>
+                                </td>
                             </tr>
-                        )}
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="13">No se encontraron registros de Preventix que cumplan con los criterios.</td>
+                        </tr>
+                    )}
                     </tbody>
                 </table>
             </div>

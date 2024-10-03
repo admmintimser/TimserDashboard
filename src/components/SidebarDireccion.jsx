@@ -61,6 +61,9 @@ const SidebarDireccion = () => {
                         <MenuItem icon={<GiHamburgerMenu />} onClick={() => setCollapsed(!collapsed)}>Menu</MenuItem>
                         <MenuItem icon={<TiHome />} component={<Link to="/" />}>Home</MenuItem>
                         <MenuItem icon={<BsReception4 />} component={<Link to="/receptionlab" />}>Recepción</MenuItem>
+                        <MenuItem icon={<BsCardChecklist />} component={<Link to="/preventix" />}>
+                            Preventix
+                        </MenuItem>
                         <MenuItem icon={<BsCardChecklist />} component={<Link to="/estatus-preventix-dashboard" />}>Estatus</MenuItem>
                         <MenuItem icon={<RiLogoutBoxFill />} onClick={handleLogout}>Logout</MenuItem>
                     </Menu>

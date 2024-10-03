@@ -8,13 +8,14 @@ import { CiFilter } from "react-icons/ci";
 import moment from "moment-timezone";
 import * as XLSX from 'xlsx';
 import { DNA } from 'react-loader-spinner';
-import "./dashboard.css"; // Usar el mismo archivo CSS que el Dashboard
+import "./dashboard.css";
 import PrintButtonMicro from "./PrintButtonMicro";
-import Modal from './Modal'; // Importar el componente Modal correcto
+import Modal from './Modal'; // Asegúrate de que este sea el componente correcto
 
 const BulkEditModal = ({ show, onClose, onSave }) => {
     const [estatusWesternBlot, setEstatusWesternBlot] = useState("");
     const [lavoWestern, setLavoWestern] = useState("");
+    const [tecnicoWB, setTecnicoWB] = useState(""); // Nuevo estado para tecnicoWB
     const [fechaPrecipitado, setFechaPrecipitado] = useState("");
     const [fechaLavado, setFechaLavado] = useState("");
 
@@ -22,6 +23,7 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
         const bulkChanges = {
             estatusWesternBlot,
             lavoWestern,
+            tecnicoWB, // Añadimos tecnicoWB al objeto de cambios
             fechaPrecipitado,
             fechaLavado
         };
@@ -68,6 +70,18 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                         <option value="JPRO">JPRO</option>
                     </select>
 
+                    {/* Nuevo select para TecnicoWB */}
+                    <select
+                        value={tecnicoWB || ""}
+                        onChange={(e) => setTecnicoWB(e.target.value)}
+                        className="input"
+                        required
+                    >
+                        <option value="">Tecnico</option>
+                        <option value="LGD">LGD</option>
+                        <option value="FDZG">FDZG</option>
+                    </select>
+
                     <input
                         type="date"
                         name="fechaPrecipitado"
@@ -86,7 +100,7 @@ const BulkEditModal = ({ show, onClose, onSave }) => {
                         className="input"
                         required
                     />
-                    
+
                     <button type="button" onClick={handleSave} className="save-button">
                         Guardar
                     </button>
@@ -111,12 +125,24 @@ const WesternBlot = () => {
         try {
             const response = await axios.get("https://webapitimser.azurewebsites.net/api/v1/preventix/getall", { withCredentials: true });
             if (response.data.preventix) {
-                setPreventixRecords(response.data.preventix.reverse());
+                const allRecords = response.data.preventix;
+
+                // Filtrar registros donde temperatura y estatusMuestra son diferentes de null
+                const filteredRecords = allRecords.filter(record =>
+                    record.temperatura != null && record.estatusMuestra != null
+                );
+
+                // Ordenar los registros del más reciente al más antiguo
+                const sortedRecords = filteredRecords.sort((a, b) =>
+                    new Date(b.tiempoInicioProceso) - new Date(a.tiempoInicioProceso)
+                );
+
+                setPreventixRecords(sortedRecords);
             } else {
-                throw new Error("No Preventix data received");
+                throw new Error("No se recibieron datos de Preventix");
             }
         } catch (error) {
-            toast.error("Error fetching Preventix records: " + error.message);
+            toast.error("Error al obtener registros de Preventix: " + error.message);
             setPreventixRecords([]);
         }
     }, []);
@@ -254,13 +280,25 @@ const WesternBlot = () => {
 
     const filterRecords = useCallback(() => {
         return preventixRecords.filter(record => {
+            // Añadir condiciones de temperatura y estatusMuestra
+            const temperaturaValid = record.temperatura != null;
+            const estatusMuestraValid = record.estatusMuestra != null;
+
             const folioDevelabMatch = (folioDevelabRange.min === "" || record.folioDevelab >= folioDevelabRange.min) &&
                 (folioDevelabRange.max === "" || record.folioDevelab <= folioDevelabRange.max);
             const fechaIngresoMatch = (fechaIngresoRange.start === "" || moment(record.tiempoInicioProceso).isSameOrAfter(fechaIngresoRange.start)) &&
                 (fechaIngresoRange.end === "" || moment(record.tiempoInicioProceso).isSameOrBefore(fechaIngresoRange.end));
-            return folioDevelabMatch && fechaIngresoMatch;
+
+            // Filtrar por término de búsqueda si es necesario
+            const searchTermMatch = searchTerm === "" || (
+                record.folioDevelab?.toString().includes(searchTerm) ||
+                record.estatusMuestra?.toLowerCase().includes(searchTerm) ||
+                record.resultadoElisa?.toLowerCase().includes(searchTerm)
+            );
+
+            return temperaturaValid && estatusMuestraValid && folioDevelabMatch && fechaIngresoMatch && searchTermMatch;
         });
-    }, [preventixRecords, folioDevelabRange, fechaIngresoRange]);
+    }, [preventixRecords, folioDevelabRange, fechaIngresoRange, searchTerm]);
 
     const handleDownloadExcel = useCallback(() => {
         const filteredData = selectedRecords.map(record => ({
@@ -269,7 +307,8 @@ const WesternBlot = () => {
             EstatusMuestra: record.estatusMuestra,
             FechaPrecipitado: record.fechaPrecipitado ? moment(record.fechaPrecipitado).format("YYYY-MM-DD") : 'N/A',
             FechaLavado: record.fechaLavado ? moment(record.fechaLavado).format("YYYY-MM-DD") : 'N/A',
-            TecnicoWB: record.tecnicoWB,
+            Analista: record.lavoWestern,
+            Tecnico: record.tecnicoWB, // Añadimos Tecnico al Excel
             EstatusWesternBlot: record.estatusWesternBlot,
             ResultadoWesternBlot: record.resultadoWesternBlot,
         }));
@@ -316,7 +355,7 @@ const WesternBlot = () => {
                         <FaSearch className="icon" />
                         <input
                             type="text"
-                            placeholder="Buscar por ID, nombre, apellido o lugar..."
+                            placeholder="Buscar por Folio, estado, resultado..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                             className="search-input"
@@ -375,101 +414,114 @@ const WesternBlot = () => {
             <div className="appointments-list" style={{ overflowX: "auto" }}>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Seleccionar</th>
-                            <th>Folio Devellab</th>
-                            <th>Hora Inicio</th>
-                            <th>Estado</th>
-                            <th>Fecha Precipitado</th>
-                            <th>Fecha Lavado</th>
-                            <th>Analista</th>
-                            <th>Status Proceso</th>
-                            <th>Resultado WB</th>
-                            <th>Elisa</th>
-                            <th>Cuestionario</th>
-                            <th>Actualizar</th>
-                        </tr>
+                    <tr>
+                        <th>Seleccionar</th>
+                        <th>Folio Devellab</th>
+                        <th>Hora Inicio</th>
+                        <th>Estado</th>
+                        <th>Fecha Precipitado</th>
+                        <th>Fecha Lavado</th>
+                        <th>Analista</th>
+                        <th>Tecnico</th> {/* Nueva columna para Tecnico */}
+                        <th>Status Proceso</th>
+                        <th>Resultado WB</th>
+                        <th>Elisa</th>
+                        <th>Cuestionario</th>
+                        <th>Actualizar</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {filteredRecords.length > 0 ? (
-                            filteredRecords.map((record) => (
-                                <tr key={record._id}>
-                                    <td>
-                                        <input
-                                            type="checkbox"
-                                            className="roundedOne"
-                                            checked={selectedRecords.includes(record)}
-                                            onChange={() => handleSelectRecord(record)}
-                                        />
-                                    </td>
-                                    <td>{record.folioDevelab}</td>
-                                    <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
-                                    <td>{record.estatusMuestra}</td>
-                                    <td>{moment(record.fechaPrecipitado).format("YYYY-MM-DD")}</td>
-                                    <td>{moment(record.fechaLavado).format("YYYY-MM-DD")}</td>
-                                    <td>
-                                        <select
-                                            value={localChanges[record._id]?.tecnicoWB || record.tecnicoWB || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'tecnicoWB', e.target.value)}
-                                            className="input"
-                                        >
-                                            <option value="">Selecciona</option>
-                                            <option value="JEHR">JEHR</option>
-                                            <option value="ENTT">ENTT</option>
-                                            <option value="DKVG">DKVG</option>
-                                            <option value="JPRO">JPRO</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            value={localChanges[record._id]?.estatusWesternBlot || record.estatusWesternBlot || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'estatusWesternBlot', e.target.value)}
-                                            className="input"
-                                        >
-                                            <option value="">Seleccione una opción</option>
-                                            <option value="Preparación">Preparación</option>
-                                            <option value="Electroforesis">Electroforesis</option>
-                                            <option value="Transferencia">Transferencia</option>
-                                            <option value="Bloqueo">Bloqueo</option>
-                                            <option value="Incubación">Incubación</option>
-                                            <option value="Análisis">Análisis</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            value={localChanges[record._id]?.resultadoWesternBlot || record.resultadoWesternBlot || ""}
-                                            onChange={(e) => handleLocalChange(record._id, 'resultadoWesternBlot', e.target.value)}
-                                        />
-                                    </td>
-                                    <td>{record.resultadoElisa}</td>
-                                    <td>
-                                        <button className="botontabla" onClick={(e) => {
+                    {filteredRecords.length > 0 ? (
+                        filteredRecords.map((record) => (
+                            <tr key={record._id}>
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        className="roundedOne"
+                                        checked={selectedRecords.includes(record)}
+                                        onChange={() => handleSelectRecord(record)}
+                                    />
+                                </td>
+                                <td>{record.folioDevelab}</td>
+                                <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
+                                <td>{record.estatusMuestra}</td>
+                                <td>{record.fechaPrecipitado ? moment(record.fechaPrecipitado).format("YYYY-MM-DD") : ''}</td>
+                                <td>{record.fechaLavado ? moment(record.fechaLavado).format("YYYY-MM-DD") : ''}</td>
+                                <td>
+                                    <select
+                                        value={localChanges[record._id]?.lavoWestern || record.lavoWestern || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'lavoWestern', e.target.value)}
+                                        className="input"
+                                    >
+                                        <option value="">Selecciona</option>
+                                        <option value="JEHR">JEHR</option>
+                                        <option value="ENTT">ENTT</option>
+                                        <option value="DKVG">DKVG</option>
+                                        <option value="JPRO">JPRO</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    {/* Nuevo select para TecnicoWB */}
+                                    <select
+                                        value={localChanges[record._id]?.tecnicoWB || record.tecnicoWB || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'tecnicoWB', e.target.value)}
+                                        className="input"
+                                    >
+                                        <option value="">Selecciona</option>
+                                        <option value="LGD">LGD</option>
+                                        <option value="FDZG">FDZG</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select
+                                        value={localChanges[record._id]?.estatusWesternBlot || record.estatusWesternBlot || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'estatusWesternBlot', e.target.value)}
+                                        className="input"
+                                    >
+                                        <option value="">Seleccione una opción</option>
+                                        <option value="Preparación">Preparación</option>
+                                        <option value="Electroforesis">Electroforesis</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Bloqueo">Bloqueo</option>
+                                        <option value="Incubación">Incubación</option>
+                                        <option value="Análisis">Análisis</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={localChanges[record._id]?.resultadoWesternBlot || record.resultadoWesternBlot || ""}
+                                        onChange={(e) => handleLocalChange(record._id, 'resultadoWesternBlot', e.target.value)}
+                                    />
+                                </td>
+                                <td>{record.resultadoElisa}</td>
+                                <td>
+                                    <button className="botontabla" onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
+                                    }}>
+                                        Ver
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        className="botonactualizar"
+                                        onClick={(e) => {
                                             e.stopPropagation();
-                                            handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
-                                        }}>
-                                            Ver
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button
-                                            className="botonactualizar"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleUpdateFields(record._id, localChanges[record._id]);
-                                            }}
-                                            disabled={!localChanges[record._id]}
-                                        >
-                                            Actualizar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="11">No se encontraron registros de Preventix.</td>
+                                            handleUpdateFields(record._id, localChanges[record._id]);
+                                        }}
+                                        disabled={!localChanges[record._id]}
+                                    >
+                                        Actualizar
+                                    </button>
+                                </td>
                             </tr>
-                        )}
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="13">No se encontraron registros de Preventix que cumplan con los criterios.</td>
+                        </tr>
+                    )}
                     </tbody>
                 </table>
             </div>
