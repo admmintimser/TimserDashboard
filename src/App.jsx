@@ -39,15 +39,15 @@ import "./App.css";
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, admin, setAdmin, userRole, setUserRole } = useContext(Context);
   const location = useLocation();
-  const navigate = useNavigate();  // Hook para redirigir al login
-  const [isLoading, setIsLoading] = useState(true); // Estado de carga inicial
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await axios.get("https://webapitimser.azurewebsites.net/api/v1/user/me", { withCredentials: true });
 
-        if (response.data && response.data.user) { // Verifica que la respuesta contenga datos
+        if (response.data && response.data.user) {
           setIsAuthenticated(true);
           setAdmin(response.data.user);
           setUserRole(response.data.user.role);
@@ -60,35 +60,28 @@ const App = () => {
 
         const lastPath = localStorage.getItem("lastPath");
         if (lastPath && lastPath !== location.pathname) {
-          window.history.replaceState(null, "", lastPath);
+          navigate(lastPath);
         }
       } catch (error) {
-        if (error.response && error.response.status === 401) {
-          // Si estamos en una ruta que no es /login, redirige al login
-          if (location.pathname !== '/login') {
-            navigate("/login");
-          }
-        } else {
-          // Limpia el estado si hay un error
-          setIsAuthenticated(false);
-          setAdmin({});
-          setUserRole("");
-          localStorage.removeItem("isAuthenticated");
-          localStorage.removeItem("admin");
-          localStorage.removeItem("userRole");
+        // Manejo de errores y limpieza del estado
+        setIsAuthenticated(false);
+        setAdmin({});
+        setUserRole("");
+        localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("admin");
+        localStorage.removeItem("userRole");
+        if (location.pathname !== '/login') {
+          navigate("/login");
         }
       } finally {
-        setIsLoading(false); // Termina la carga inicial
+        setIsLoading(false);
       }
     };
 
-    // Solo ejecuta fetchUser si el usuario no está autenticado
-    if (!isAuthenticated) {
-      fetchUser();
-    }
-  }, [setIsAuthenticated, setAdmin, setUserRole, location.pathname, navigate, isAuthenticated]);
+    fetchUser(); // Llama a fetchUser siempre que el componente se monte
+  }, [setIsAuthenticated, setAdmin, setUserRole, location.pathname, navigate]);
 
-  // Guarda la última ruta en el localStorage solo si el usuario está autenticado
+  // Guarda la última ruta visitada si el usuario está autenticado
   useEffect(() => {
     if (isAuthenticated) {
       localStorage.setItem("lastPath", location.pathname);
@@ -120,7 +113,7 @@ const App = () => {
       Sidebar = SidebarComponent; // Sidebar genérico si no hay rol específico
   }
 
-  // Muestra un mensaje de carga o spinner hasta que los datos estén listos
+  // Muestra un mensaje de carga hasta que los datos estén listos
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -149,7 +142,7 @@ const App = () => {
         <Sidebar />
         <div className="main-content">
           <Routes>
-            <Route path="/" element={<Navigate to={initialRoute} />} /> {/* Redirecciona según el rol */}
+            <Route path="/" element={<Navigate to={initialRoute} />} />
             <Route path="/login" element={<Login />} />
 
             {/* Rutas abiertas a todos los roles por ahora */}
@@ -176,7 +169,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/home" element={<Home />} />
 
-            <Route path="*" element={<Navigate to={initialRoute} />} /> {/* Redirecciona a la ruta inicial si la ruta es inválida */}
+            <Route path="*" element={<Navigate to={initialRoute} />} />
           </Routes>
           <ToastContainer position="top-center" />
         </div>
