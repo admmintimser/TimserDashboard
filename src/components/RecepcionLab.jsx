@@ -16,12 +16,17 @@ const RecepcionLab = () => {
     const [localChanges, setLocalChanges] = useState({}); // Estado para almacenar cambios locales
     const { isAuthenticated } = useContext(Context);
 
-    // Fetch the preventix data instead of appointments
+    // Fetch the preventix data with appointment data populated
     const fetchPreventixData = useCallback(async () => {
         try {
             const response = await axios.get(
                 "https://webapitimser.azurewebsites.net/api/v1/preventix/getall",
-                { withCredentials: true }
+                {
+                    withCredentials: true,
+                    params: {
+                        populateAppointment: true, // Asegúrate de que tu backend soporte este parámetro para popular los datos de la cita
+                    },
+                }
             );
 
             const preventixRecords = response.data.preventix || [];
@@ -44,17 +49,25 @@ const RecepcionLab = () => {
         if (e.key === 'Enter') {
             const value = searchTerm.trim().toLowerCase();
 
-            // Filtrar los registros que coincidan con el término de búsqueda
-            const matchedRecords = preventixRecords.filter(record =>
-                (record.folioDevelab && record.folioDevelab.toString().toLowerCase() === value)
-            );
+            if (value) {
+                const matchedRecords = preventixRecords.filter(record => {
+                    const folioDevelab = record.folioDevelab ? record.folioDevelab.toString().toLowerCase() : '';
+                    const firstName = record.appointmentId && record.appointmentId.patientFirstName ? record.appointmentId.patientFirstName.toLowerCase() : '';
+                    const lastName = record.appointmentId && record.appointmentId.patientLastName ? record.appointmentId.patientLastName.toLowerCase() : '';
+                    const fullName = `${firstName} ${lastName}`.trim();
+                    const folioAndName = `${folioDevelab} ${fullName}`.trim();
 
-            // Agregar el registro encontrado a los registros escaneados si no está ya en la lista
-            matchedRecords.forEach(matchedRecord => {
-                if (!scannedRecords.some(rec => rec._id === matchedRecord._id)) {
-                    setScannedRecords(prev => [...prev, matchedRecord]);
-                }
-            });
+                    // Intentar coincidencia exacta con folio, nombre completo, o folio + nombre
+                    return value === folioDevelab || value === fullName || value === folioAndName;
+                });
+
+                // Agregar los registros encontrados a scannedRecords
+                matchedRecords.forEach(matchedRecord => {
+                    if (!scannedRecords.some(rec => rec._id === matchedRecord._id)) {
+                        setScannedRecords(prev => [...prev, matchedRecord]);
+                    }
+                });
+            }
 
             // Limpiar el término de búsqueda
             setSearchTerm("");
@@ -91,7 +104,7 @@ const RecepcionLab = () => {
 
         try {
             await axios.put(`https://webapitimser.azurewebsites.net/api/v1/preventix/update/${recordId}`, changes, { withCredentials: true });
-            
+
             // Actualizar preventixRecords
             setPreventixRecords((prevRecords) =>
                 prevRecords.map((record) =>
@@ -150,7 +163,7 @@ const RecepcionLab = () => {
                             <input
                                 type="text"
                                 id="barcode-input"
-                                placeholder="Escanear código de barras o buscar por folio"
+                                placeholder="Escanear código de barras o buscar por folio/nombre"
                                 className="barcode-input"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
@@ -165,82 +178,88 @@ const RecepcionLab = () => {
             <div className="appointments-list">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Seleccionar</th>
-                            <th>Folio Develab</th>
-                            <th>Fecha de Toma</th>
-                            <th>Estado Muestra</th>
-                            <th>Temperatura</th>
-                            <th>Actualizar</th>
-                        </tr>
+                    <tr>
+                        <th>Seleccionar</th>
+                        <th>Folio Develab</th>
+                        <th>Nombre Paciente</th>
+                        <th>Fecha de Toma</th>
+                        <th>Estado Muestra</th>
+                        <th>Temperatura</th>
+                        <th>Actualizar</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {scannedRecords.length > 0 ? (
-                            scannedRecords.map((record) => (
-                                <tr key={record._id}>
-                                    <td>
-                                        <input
-                                            className="roundedOne"
-                                            type="checkbox"
-                                            checked={selectedRecords.includes(record)}
-                                            onChange={() => handleSelectRecord(record)}
-                                        />
-                                    </td>
-                                    <td>{record.folioDevelab}</td>
-                                    <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
+                    {scannedRecords.length > 0 ? (
+                        scannedRecords.map((record) => (
+                            <tr key={record._id}>
+                                <td>
+                                    <input
+                                        className="roundedOne"
+                                        type="checkbox"
+                                        checked={selectedRecords.includes(record)}
+                                        onChange={() => handleSelectRecord(record)}
+                                    />
+                                </td>
+                                <td>{record.folioDevelab}</td>
+                                <td>
+                                    {record.appointmentId
+                                        ? `${record.appointmentId.patientFirstName} ${record.appointmentId.patientLastName}`
+                                        : "N/A"}
+                                </td>
+                                <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
 
-                                    <td>
-                                        {selectedRecords.includes(record) ? (
-                                            <select
-                                                value={localChanges[record._id]?.estatusMuestra || record.estatusMuestra || "Buen Estado"}
-                                                onChange={(e) => handleLocalChange(record._id, 'estatusMuestra', e.target.value)}
-                                                className="input"
-                                            >
-                                                <option value="Buen Estado">Buen Estado</option>
-                                                <option value="Lipémica +">Lipémica +</option>
-                                                <option value="Lipémica ++">Lipémica ++</option>
-                                                <option value="Lipémica +++">Lipémica +++</option>
-                                                <option value="Hemolizada +">Hemolizada +</option>
-                                                <option value="Hemolizada ++">Hemolizada ++</option>
-                                                <option value="Hemolizada +++">Hemolizada +++</option>
-                                                <option value="Ictericia +">Ictericia +</option>
-                                                <option value="Ictericia ++">Ictericia ++</option>
-                                                <option value="Ictericia +++">Ictericia +++</option>
-                                            </select>
-                                        ) : (
-                                            <span>{record.estatusMuestra || "Buen Estado"}</span>
-                                        )}
-                                    </td>
-
-                                    <td>
-                                        {selectedRecords.includes(record) ? (
-                                            <input
-                                                type="number"
-                                                value={localChanges[record._id]?.temperatura || record.temperatura || ""}
-                                                onChange={(e) => handleLocalChange(record._id, 'temperatura', e.target.value)}
-                                                className="input"
-                                            />
-                                        ) : (
-                                            <span>{record.temperatura || "N/A"}</span>
-                                        )}
-                                    </td>
-
-                                    <td>
-                                        <button
-                                            className="botonactualizar"
-                                            onClick={() => handleUpdateField(record._id)}
-                                            disabled={!localChanges[record._id]} // Deshabilitar si no hay cambios
+                                <td>
+                                    {selectedRecords.includes(record) ? (
+                                        <select
+                                            value={localChanges[record._id]?.estatusMuestra || record.estatusMuestra || "Buen Estado"}
+                                            onChange={(e) => handleLocalChange(record._id, 'estatusMuestra', e.target.value)}
+                                            className="input"
                                         >
-                                            Actualizar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="6">No se encontraron registros escaneados.</td>
+                                            <option value="Buen Estado">Buen Estado</option>
+                                            <option value="Lipémica +">Lipémica +</option>
+                                            <option value="Lipémica ++">Lipémica ++</option>
+                                            <option value="Lipémica +++">Lipémica +++</option>
+                                            <option value="Hemolizada +">Hemolizada +</option>
+                                            <option value="Hemolizada ++">Hemolizada ++</option>
+                                            <option value="Hemolizada +++">Hemolizada +++</option>
+                                            <option value="Ictericia +">Ictericia +</option>
+                                            <option value="Ictericia ++">Ictericia ++</option>
+                                            <option value="Ictericia +++">Ictericia +++</option>
+                                        </select>
+                                    ) : (
+                                        <span>{record.estatusMuestra || "Buen Estado"}</span>
+                                    )}
+                                </td>
+
+                                <td>
+                                    {selectedRecords.includes(record) ? (
+                                        <input
+                                            type="number"
+                                            value={localChanges[record._id]?.temperatura || record.temperatura || ""}
+                                            onChange={(e) => handleLocalChange(record._id, 'temperatura', e.target.value)}
+                                            className="input"
+                                        />
+                                    ) : (
+                                        <span>{record.temperatura || "N/A"}</span>
+                                    )}
+                                </td>
+
+                                <td>
+                                    <button
+                                        className="botonactualizar"
+                                        onClick={() => handleUpdateField(record._id)}
+                                        disabled={!localChanges[record._id]} // Deshabilitar si no hay cambios
+                                    >
+                                        Actualizar
+                                    </button>
+                                </td>
                             </tr>
-                        )}
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="7">No se encontraron registros escaneados.</td>
+                        </tr>
+                    )}
                     </tbody>
                 </table>
             </div>

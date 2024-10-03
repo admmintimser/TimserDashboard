@@ -10,7 +10,7 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
             try {
                 bwipjs.toCanvas(canvasRef.current, {
                     bcid: 'qrcode', // Tipo de código QR
-                    text: String(appointment.folioDevelab), // El texto escaneable será el FolioDevelab
+                    text: String(appointment.folioDevelab + " " + appointment.appointmentId.patientFirstName+ " " + appointment.appointmentId.patientLastName), // El texto escaneable será el FolioDevelab
                     scale: 3, // Factor de escala 3x
                     includetext: false, // No mostrar texto legible por humanos dentro del QR
                 });
@@ -38,18 +38,18 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
     const location = appointment?.appointmentId?.sampleLocation || 'Ubicación no disponible'; // Ubicación de la muestra
 
     return (
-        <div ref={ref} style={{ 
-            width: '25mm', 
-            height: '13mm', 
-            padding: '0mm', 
-            boxSizing: 'border-box', 
-            overflow: 'hidden', 
-            display: 'flex', 
-            flexDirection: 'row', 
-            justifyContent: 'flex-start', 
-            alignItems: 'center', 
+        <div ref={ref} style={{
+            width: '25mm',
+            height: '13mm',
+            padding: '0mm',
+            boxSizing: 'border-box',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
             fontFamily: 'Roboto',
-            fontWeight:'900' 
+            fontWeight:'900'
         }} className="border bg-white">
             {/* Parte izquierda con QR y folio */}
             <div style={{ width: '10mm', marginRight: '1mm', textAlign: 'center',lineHeight: '32%', }}>
@@ -58,9 +58,9 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
                 <div style={{ fontSize: '6px',color:'black', paddingTop:'0.5mm' }}>{iniciales}</div> {/* Iniciales */}
             </div>
             {/* Parte derecha con folio, nombre completo, fecha de nacimiento y ubicación */}
-            <div style={{ 
-                fontSize: '5.5px', 
-                lineHeight: '1.1em', 
+            <div style={{
+                fontSize: '5.5px',
+                lineHeight: '1.1em',
                 color: 'black',
                 width: '13mm', // Ajuste de ancho para alinear
             }}>

@@ -38,75 +38,76 @@ const SidebarAdminLab = () => {
   };
 
   return (
-    <>
-      {isAuthenticated && (
-        <Sidebar
-          className={collapsed ? 'collapsed' : ''}
-          rootStyles={{
-            [`.${sidebarClasses.container}`]: {
-              backgroundColor: '#0d7a79',
-              color: 'white',
-            },
-          }}
-          collapsed={collapsed}
-        >
-          <Menu
-            menuItemStyles={{
-              button: {
-                [`&:hover`]: {
-                  backgroundColor: '#005f73', // Hover color
-                  color: 'white',
-                },
-                [`&.active`]: {
-                  backgroundColor: '#0d7a79', // Background color when active
-                  color: '#005f73', // Text color when active
-                },
-              },
-              label: {
-                color: 'white', // Ensures submenu labels are white
-              },
-              submenuContent: {
-                backgroundColor: '#0d7a79', // Background color for submenu
-              }
-            }}
-          >
-            {/* Add the image at the top */}
-            <div style={{ textAlign: 'center', padding: '10px 0' }}>
-              <img src="/logo.png" alt="Logo" style={{ width: '80%', maxWidth: '200px' }} />
-            </div>
-            <MenuItem icon={<GiHamburgerMenu />}  onClick={() => setCollapsed(!collapsed)}>Menu</MenuItem>
+      <>
+        {isAuthenticated && (
+            <Sidebar
+                className={collapsed ? 'collapsed' : ''}
+                rootStyles={{
+                  [`.${sidebarClasses.container}`]: {
+                    backgroundColor: '#0d7a79',
+                    color: 'white',
+                  },
+                }}
+                collapsed={collapsed}
+            >
+              <Menu
+                  menuItemStyles={{
+                    button: {
+                      [`&:hover`]: {
+                        backgroundColor: '#005f73', // Hover color
+                        color: 'white',
+                      },
+                      [`&.active`]: {
+                        backgroundColor: '#0d7a79', // Background color when active
+                        color: '#005f73', // Text color when active
+                      },
+                    },
+                    label: {
+                      color: 'white', // Ensures submenu labels are white
+                    },
+                    submenuContent: {
+                      backgroundColor: '#0d7a79', // Background color for submenu
+                    }
+                  }}
+              >
+                {/* Add the image at the top */}
+                <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                  <img src="/logo.png" alt="Logo" style={{ width: '80%', maxWidth: '200px' }} />
+                </div>
+                <MenuItem icon={<GiHamburgerMenu />}  onClick={() => setCollapsed(!collapsed)}>Menu</MenuItem>
 
-            <MenuItem icon={<TiHome />} component={<Link to="/" />}>Home</MenuItem>
-            <MenuItem icon={<RiDashboardLine />} component={<Link to="/westernblot" />}>
-                Western Blot
-              </MenuItem>
-              <MenuItem icon={<SlChemistry />} component={<Link to="/elisas" />}>
-                Elisas
-              </MenuItem>
-              <MenuItem icon={<BsReception4 />} component={<Link to="/receptionlab" />}>
-                Recepción
-              </MenuItem>
-              <MenuItem icon={<FaVials />} component={<Link to="/preventix" />}>
-                Preventix
-              </MenuItem>
-              <MenuItem icon={<BsCardChecklist />} component={<Link to="/estatus-preventix-dashboard" />}>
-                Estatus Muestra
-              </MenuItem>
-              <MenuItem icon={<RiPassValidLine  />} component={<Link to="/validacion" />}>
-                Validación
-              </MenuItem>
-              <MenuItem icon={<FaVialCircleCheck  />} component={<Link to="/liberacion" />}>
-                Liberación
-              </MenuItem>
-              <MenuItem icon={<IoCloudUploadOutline  />} component={<Link to="/reporte" />}>
-                Carga Masiva
-              </MenuItem>
-            
-            <MenuItem icon={<RiLogoutBoxFill />} onClick={handleLogout}>Logout</MenuItem>
-          </Menu>
-        </Sidebar>
-      )}
-    </>
+                <MenuItem icon={<TiHome />} component={<Link to="/" />}>Home</MenuItem>
+                <MenuItem icon={<TiHome />} component={<Link to="/dashboard" />}>Dashboard Registro</MenuItem>
+                <MenuItem icon={<RiDashboardLine />} component={<Link to="/westernblot" />}>
+                  Western Blot
+                </MenuItem>
+                <MenuItem icon={<SlChemistry />} component={<Link to="/elisas" />}>
+                  Elisas
+                </MenuItem>
+                <MenuItem icon={<BsReception4 />} component={<Link to="/receptionlab" />}>
+                  Recepción
+                </MenuItem>
+                <MenuItem icon={<FaVials />} component={<Link to="/preventix" />}>
+                  Preventix
+                </MenuItem>
+                <MenuItem icon={<BsCardChecklist />} component={<Link to="/estatus-preventix-dashboard" />}>
+                  Estatus Muestra
+                </MenuItem>
+                <MenuItem icon={<RiPassValidLine  />} component={<Link to="/validacion" />}>
+                  Validación
+                </MenuItem>
+                <MenuItem icon={<FaVialCircleCheck  />} component={<Link to="/liberacion" />}>
+                  Liberación
+                </MenuItem>
+                <MenuItem icon={<IoCloudUploadOutline  />} component={<Link to="/reporte" />}>
+                  Carga Masiva
+                </MenuItem>
+
+                <MenuItem icon={<RiLogoutBoxFill />} onClick={handleLogout}>Logout</MenuItem>
+              </Menu>
+            </Sidebar>
+        )}
+      </>
   );
 };
 

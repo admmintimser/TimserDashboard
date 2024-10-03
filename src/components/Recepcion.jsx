@@ -15,9 +15,7 @@ const Recepcion = () => {
     const [showModal, setShowModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [formValues, setFormValues] = useState({
-        tiempoInicioProceso: "",
-        estatusMuestra: "Buen Estado",
-        temperatura: ""
+        tiempoInicioProceso: ""
     });
 
     const { isAuthenticated } = useContext(Context);
@@ -67,8 +65,6 @@ const Recepcion = () => {
         setShowModal(false);
         setFormValues({
             tiempoInicioProceso: "",
-            estatusMuestra: "Buen Estado",
-            temperatura: ""
         });
     };
 
@@ -89,8 +85,6 @@ const Recepcion = () => {
                     {
                         appointmentId: appointment._id,
                         tiempoInicioProceso: formValues.tiempoInicioProceso,
-                        estatusMuestra: formValues.estatusMuestra,
-                        temperatura: formValues.temperatura,
                         folioDevelab: appointment.FolioDevelab,
                         estatusTomaMuestra: true,
                         estatusRecepcion: true
@@ -121,14 +115,14 @@ const Recepcion = () => {
     if (!appointments.length) {
         return (
             <div className="loading-container">
-                    <DNA
+                <DNA
                     visible={true}
                     height="180"
                     width="180"
                     color="pink"
                     ariaLabel="dna-loading"
                     wrapperClass="dna-wrapper"
-                    />
+                />
             </div>
         );
     }
@@ -141,88 +135,88 @@ const Recepcion = () => {
                     <h3>{appointments.length}</h3>
                 </div>
                 <div className="thirdBox">
-          <div className="card-content">
-          <button onClick={handleModalOpen} className="appoin-button1">
-                    Ingresar a Laboratorio
-                </button>
-                {showModal && (
-                    <div className="modal">
-                        <div className="modal-content">
+                    <div className="card-content">
+                        <button onClick={handleModalOpen} className="appoin-button1">
+                            Ingresar a Laboratorio
+                        </button>
+                        {showModal && (
+                            <div className="modal">
+                                <div className="modal-content">
                             <span className="close" onClick={handleModalClose}>
                                 &times;
                             </span>
-                            <h2>Ingresar a Laboratorio</h2>
-                            <form onSubmit={handleFormSubmit}>
-                                <input
-                                    type="datetime-local"
-                                    name="tiempoInicioProceso"
-                                    placeholder="Tiempo de Inicio de Proceso"
-                                    value={formValues.tiempoInicioProceso}
-                                    onChange={handleFormChange}
-                                    className="input"
-                                    required
-                                />
-                                <button type="submit" className="save-button">
-                                    Guardar
-                                </button>
-                            </form>
+                                    <h2>Ingresar a Laboratorio</h2>
+                                    <form onSubmit={handleFormSubmit}>
+                                        <input
+                                            type="datetime-local"
+                                            name="tiempoInicioProceso"
+                                            placeholder="Tiempo de Inicio de Proceso"
+                                            value={formValues.tiempoInicioProceso}
+                                            onChange={handleFormChange}
+                                            className="input"
+                                            required
+                                        />
+                                        <button type="submit" className="save-button">
+                                            Guardar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="card-content">
+                        <div className="barcode-container">
+                            <input
+                                type="text"
+                                id="barcode-input"
+                                placeholder="Escanear código de barras"
+                                className="barcode-input"
+                                value={searchTerm}
+                                onChange={handleBarcodeInput}
+                                autoFocus
+                            />
+                            <FaTrash className="clear-icon" onClick={handleClearBarcodeInput} />
                         </div>
                     </div>
-                )}
-          </div>
-          <div className="card-content">
-          <div className="barcode-container">
-                    <input
-                        type="text"
-                        id="barcode-input"
-                        placeholder="Escanear código de barras"
-                        className="barcode-input"
-                        value={searchTerm}
-                        onChange={handleBarcodeInput}
-                        autoFocus
-                    />
-                    <FaTrash className="clear-icon" onClick={handleClearBarcodeInput} />
                 </div>
-          </div>
-          </div>
             </div>
             <div className="appointments-list">
-                
+
                 <table>
                     <thead>
-                        <tr>
-                            <th>Seleccionar</th>
-                            <th>Nombre</th>
-                            <th>Correo</th>
-                            <th>Lugar de Toma</th>
-                            <th>Folio Develab</th>
-                            <th>Fecha Toma</th>
-                        </tr>
+                    <tr>
+                        <th>Seleccionar</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Lugar de Toma</th>
+                        <th>Folio Develab</th>
+                        <th>Fecha Toma</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {filteredAppointments.length > 0 ? (
-                            filteredAppointments.map((appointment) => (
-                                <tr key={appointment._id}>
-                                    <td>
-                                        <input
-                                            className="roundedOne"
-                                            type="checkbox"
-                                            checked={selectedAppointments.includes(appointment)}
-                                            onChange={() => handleSelectAppointment(appointment)}
-                                        />
-                                    </td>
-                                    <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
-                                    <td>{appointment.email}</td>
-                                    <td>{appointment.sampleLocation}</td>
-                                    <td>{appointment.FolioDevelab}</td>
-                                    <td>{moment(appointment.fechaToma).format("YYYY-MM-DD HH:mm")}</td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="6">No se encontraron citas procesadas hoy.</td>
+                    {filteredAppointments.length > 0 ? (
+                        filteredAppointments.map((appointment) => (
+                            <tr key={appointment._id}>
+                                <td>
+                                    <input
+                                        className="roundedOne"
+                                        type="checkbox"
+                                        checked={selectedAppointments.includes(appointment)}
+                                        onChange={() => handleSelectAppointment(appointment)}
+                                    />
+                                </td>
+                                <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
+                                <td>{appointment.email}</td>
+                                <td>{appointment.sampleLocation}</td>
+                                <td>{appointment.FolioDevelab}</td>
+                                <td>{moment(appointment.fechaToma).format("YYYY-MM-DD HH:mm")}</td>
                             </tr>
-                        )}
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="6">No se encontraron citas procesadas hoy.</td>
+                        </tr>
+                    )}
                     </tbody>
                 </table>
             </div>
