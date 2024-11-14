@@ -1,5 +1,4 @@
 // src/components/Elisas.jsx
-
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -255,7 +254,8 @@ const Elisas = () => {
             const searchTermMatch = searchTerm === "" || (
                 record.folioDevelab?.toString().includes(searchTerm) ||
                 record.estatusMuestra?.toLowerCase().includes(searchTerm) ||
-                record.tecnicoElisa?.toLowerCase().includes(searchTerm)
+                record.tecnicoElisa?.toLowerCase().includes(searchTerm) ||
+                record.numeroPlaca?.toLowerCase().includes(searchTerm) // Buscar también por número de placa
             );
 
             return temperaturaValid && estatusMuestraValid && folioDevelabMatch && fechaIngresoMatch && searchTermMatch;
@@ -306,7 +306,7 @@ const Elisas = () => {
     return (
         <section className="dashboard page">
             <div className="unified-banner">
-                <h2 className="banner-title">Elisa - Inmunoquica</h2>
+                <h2 className="banner-title">Inmunoquica</h2>
 
                 <div className="banner-grid">
                     <div className="banner-card">
@@ -318,7 +318,7 @@ const Elisas = () => {
                         <FaSearch className="icon" />
                         <input
                             type="text"
-                            placeholder="Buscar por Folio, estado, técnico..."
+                            placeholder="Buscar por Folio, estado, técnico, placa..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                             className="search-input"

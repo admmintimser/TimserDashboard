@@ -1,5 +1,4 @@
 // src/components/PreventixDashboard.jsx
-
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
@@ -8,8 +7,8 @@ import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
 import moment from "moment-timezone";
 import { DNA } from 'react-loader-spinner';
-import Modal from './Modal';  // Import the new Modal component
-import "./dashboard.css"; // Usar el mismo archivo CSS que el Dashboard
+import Modal from './Modal';  // Importa el componente Modal
+import "./dashboard.css"; // Usa el mismo archivo CSS que el Dashboard
 
 const PreventixDashboard = () => {
     const [preventixRecords, setPreventixRecords] = useState([]);
@@ -43,16 +42,20 @@ const PreventixDashboard = () => {
         return () => clearInterval(interval);
     }, [fetchPreventixData]);
 
-    const handleRowClick = (appointment) => {
-        setSelectedAppointment(appointment);
-    };
-
     const closeModal = () => {
         setSelectedAppointment(null);
     };
 
     const handleIdCuestionarioClick = (appointmentId) => {
         setSelectedAppointment(appointmentId);
+    };
+
+    /**
+     * Función para eliminar acentos de una cadena y tratarla de forma normalizada.
+     * Esto permite que la búsqueda sea más flexible en términos de acentuación.
+     */
+    const removeAccents = (str) => {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     };
 
     const getRowColor = (record) => {
@@ -100,6 +103,41 @@ const PreventixDashboard = () => {
         );
     }
 
+    // Normaliza el término de búsqueda eliminando acentos y convirtiendo a minúsculas
+    const normalizedSearchTerm = removeAccents(searchTerm.toLowerCase());
+
+    // Filtra los registros según el término de búsqueda
+    const filteredRecords = preventixRecords.filter((record) => {
+        // Normaliza los campos para comparaciones flexibles
+        const recordId = removeAccents(record._id.toLowerCase());
+        const appointmentId = record.appointmentId && record.appointmentId._id ? removeAccents(record.appointmentId._id.toLowerCase()) : '';
+        const estatusMuestra = record.estatusMuestra ? removeAccents(record.estatusMuestra.toLowerCase()) : '';
+        const tecnicoWB = record.tecnicoWB ? removeAccents(record.tecnicoWB.toLowerCase()) : '';
+        const folioDevelab = record.folioDevelab ? removeAccents(record.folioDevelab.toLowerCase()) : '';
+        const patientFirstName = record.appointmentId && record.appointmentId.patientFirstName
+            ? removeAccents(record.appointmentId.patientFirstName.toLowerCase())
+            : '';
+        const patientLastName = record.appointmentId && record.appointmentId.patientLastName
+            ? removeAccents(record.appointmentId.patientLastName.toLowerCase())
+            : '';
+
+        // Si no hay término de búsqueda, se muestran todos los registros
+        if (!normalizedSearchTerm) {
+            return true;
+        }
+
+        // Comprueba si alguno de los campos coinciden con el término de búsqueda
+        return (
+            recordId.includes(normalizedSearchTerm) ||
+            (appointmentId && appointmentId.includes(normalizedSearchTerm)) ||
+            (estatusMuestra && estatusMuestra.includes(normalizedSearchTerm)) ||
+            (tecnicoWB && tecnicoWB.includes(normalizedSearchTerm)) ||
+            (patientFirstName && patientFirstName.includes(normalizedSearchTerm)) ||
+            (patientLastName && patientLastName.includes(normalizedSearchTerm)) ||
+            (folioDevelab && folioDevelab.includes(normalizedSearchTerm))
+        );
+    });
+
     return (
         <section className="dashboard page">
             <div className="banner">
@@ -115,7 +153,7 @@ const PreventixDashboard = () => {
                             type="text"
                             placeholder="Buscar por ID, nombre o estado..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="search-input"
                         />
                     </div>
@@ -142,47 +180,39 @@ const PreventixDashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {preventixRecords.length > 0 ? (
-                            preventixRecords
-                                .filter(
-                                    (record) =>
-                                        record._id.toLowerCase().includes(searchTerm) ||
-                                        (record.appointmentId && record.appointmentId._id.toLowerCase().includes(searchTerm)) ||
-                                        (record.estatusMuestra && record.estatusMuestra.toLowerCase().includes(searchTerm)) ||
-                                        (record.tecnicoWB && record.tecnicoWB.toLowerCase().includes(searchTerm))
-                                )
-                                .map((record) => (
-                                    <tr key={record._id} onClick={() => handleRowClick(record.appointmentId)}>
-                                        <td>{record.folioDevelab}</td>
-                                        <td>
-                                            <button style={getStatusButtonStyle(record)}>
-                                                {record.tiempoFinProceso ? 'Completado' : 'En proceso'}
-                                            </button>
-                                        </td>
-                                        <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
-                                        <td>{record.resultadosEnviados ? 'Enviado' : 'Pendiente'}</td>
-                                        <td>{record.tiempoFinProceso ? moment(record.tiempoFinProceso).format("YYYY-MM-DD HH:mm") : 'N/A'}</td>
-                                        <td>{record.estatusMuestra}</td>
-                                        <td>{record.temperatura ? `${record.temperatura}º` : 'N/A'}</td>
-                                        <td>{record.interpretacionPreventix}</td>
-                                        <td>{record.estatusWesternBlot}</td>
-                                        <td>{record.resultadoWesternBlot}</td>
-                                        <td>{record.estatusElisa}</td>
-                                        <td>{record.resultadoElisa}</td>
-                                        <td>{record.lugarProceso}</td>
-                                        <td>
-                                            <button className="botontabla" onClick={(e) => {
-                                                e.stopPropagation(); // Prevent triggering the row click event
-                                                handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
-                                            }}>
-                                                Ver
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
+                        {filteredRecords.length > 0 ? (
+                            filteredRecords.map((record) => (
+                                <tr key={record._id}>
+                                    <td>{record.folioDevelab}</td>
+                                    <td>
+                                        <button style={getStatusButtonStyle(record)}>
+                                            {record.tiempoFinProceso ? 'Completado' : 'En proceso'}
+                                        </button>
+                                    </td>
+                                    <td>{moment(record.tiempoInicioProceso).format("YYYY-MM-DD HH:mm")}</td>
+                                    <td>{record.resultadosEnviados ? 'Enviado' : 'Pendiente'}</td>
+                                    <td>{record.tiempoFinProceso ? moment(record.tiempoFinProceso).format("YYYY-MM-DD HH:mm") : 'N/A'}</td>
+                                    <td>{record.estatusMuestra}</td>
+                                    <td>{record.temperatura ? `${record.temperatura}º` : 'N/A'}</td>
+                                    <td>{record.interpretacionPreventix}</td>
+                                    <td>{record.estatusWesternBlot}</td>
+                                    <td>{record.resultadoWesternBlot}</td>
+                                    <td>{record.estatusElisa}</td>
+                                    <td>{record.resultadoElisa}</td>
+                                    <td>{record.lugarProceso}</td>
+                                    <td>
+                                        <button className="botontabla" onClick={(e) => {
+                                            e.stopPropagation(); // Evita desencadenar otros eventos
+                                            handleIdCuestionarioClick(record.appointmentId ? record.appointmentId : null);
+                                        }}>
+                                            Ver
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
                         ) : (
                             <tr>
-                                <td colSpan="15">No se encontraron registros de Preventix.</td>
+                                <td colSpan="14">No se encontraron registros de Preventix.</td>
                             </tr>
                         )}
                     </tbody>
