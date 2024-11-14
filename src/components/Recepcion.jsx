@@ -17,6 +17,7 @@ const Recepcion = () => {
     const [formValues, setFormValues] = useState({
         tiempoInicioProceso: ""
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { isAuthenticated } = useContext(Context);
 
@@ -27,8 +28,8 @@ const Recepcion = () => {
                 { withCredentials: true }
             );
 
-            const appointments = response.data.appointments || [];
-            const filteredAppointments = appointments.filter(appointment => appointment.tomaProcesada === true);
+            const appointmentsData = response.data.appointments || [];
+            const filteredAppointments = appointmentsData.filter(appointment => appointment.tomaProcesada === true);
             setAppointments(filteredAppointments.reverse());
         } catch (error) {
             toast.error("Error fetching appointments: " + error.message);
@@ -58,6 +59,10 @@ const Recepcion = () => {
     };
 
     const handleModalOpen = () => {
+        if (selectedAppointments.length === 0) {
+            toast.info("Por favor, seleccione al menos una cita antes de ingresar al laboratorio.");
+            return;
+        }
         setShowModal(true);
     };
 
@@ -66,6 +71,7 @@ const Recepcion = () => {
         setFormValues({
             tiempoInicioProceso: "",
         });
+        setIsSubmitting(false);
     };
 
     const handleFormChange = (e) => {
@@ -78,25 +84,45 @@ const Recepcion = () => {
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting) return; // Prevenir múltiples envíos simultáneos
+
+        setIsSubmitting(true); // Marca que el envío está en proceso
+
         try {
-            await Promise.all(selectedAppointments.map(appointment =>
-                axios.post(
-                    "https://webapitimser.azurewebsites.net/api/v1/preventix/post",
-                    {
-                        appointmentId: appointment._id,
-                        tiempoInicioProceso: formValues.tiempoInicioProceso,
-                        folioDevelab: appointment.FolioDevelab,
-                        estatusTomaMuestra: true,
-                        estatusRecepcion: true
-                    },
-                    { withCredentials: true }
-                )
-            ));
-            toast.success("Preventix entries created successfully");
+            await Promise.all(selectedAppointments.map(async (appointment) => {
+                try {
+                    return await axios.post(
+                        "https://webapitimser.azurewebsites.net/api/v1/preventix/post",
+                        {
+                            appointmentId: appointment._id,
+                            tiempoInicioProceso: formValues.tiempoInicioProceso,
+                            folioDevelab: appointment.FolioDevelab,
+                            estatusTomaMuestra: true,
+                            estatusRecepcion: true
+                        },
+                        { withCredentials: true }
+                    );
+                } catch (error) {
+                    // Manejo específico de errores para cada creación individual
+                    if (error.response && error.response.data && error.response.data.message) {
+                        // Si el servidor envía un mensaje de error específico
+                        toast.error(`Error con el folio ${appointment.FolioDevelab}: ${error.response.data.message}`);
+                    } else {
+                        // Mensaje de error genérico
+                        toast.error(`Error con el folio ${appointment.FolioDevelab}: ${error.message}`);
+                    }
+                    throw error; // Se vuelve a lanzar el error para manejarlo fuera del Promise.all
+                }
+            }));
+
+            toast.success("Entradas de Preventix creadas exitosamente");
             handleModalClose();
             fetchData();
         } catch (error) {
-            toast.error("Error creating Preventix entries: " + error.message);
+            console.error("Error creating Preventix entries:", error);
+            // Si uno de los envíos falla, se capturará aquí, y el mensaje de error relevante ya se mostró con toast
+        } finally {
+            setIsSubmitting(false); // Restablecer el estado de envío
         }
     };
 
@@ -104,7 +130,7 @@ const Recepcion = () => {
         return <Navigate to="/login" />;
     }
 
-    const filteredAppointments = appointments.filter(appointment =>
+    const filteredAppointments = appointments.filter((appointment) =>
         (appointment.FolioDevelab && appointment.FolioDevelab.toString().includes(searchTerm)) ||
         (appointment.patientFirstName && appointment.patientFirstName.toLowerCase().includes(searchTerm)) ||
         (appointment.patientLastName && appointment.patientLastName.toLowerCase().includes(searchTerm)) ||
@@ -134,17 +160,18 @@ const Recepcion = () => {
                     <p>Muestras Tomadas</p>
                     <h3>{appointments.length}</h3>
                 </div>
+
                 <div className="thirdBox">
                     <div className="card-content">
-                        <button onClick={handleModalOpen} className="appoin-button1">
+                        <button onClick={handleModalOpen} className="appoin-button1" disabled={selectedAppointments.length === 0 || isSubmitting}>
                             Ingresar a Laboratorio
                         </button>
                         {showModal && (
                             <div className="modal">
                                 <div className="modal-content">
-                            <span className="close" onClick={handleModalClose}>
-                                &times;
-                            </span>
+                                    <span className="close" onClick={handleModalClose}>
+                                        &times;
+                                    </span>
                                     <h2>Ingresar a Laboratorio</h2>
                                     <form onSubmit={handleFormSubmit}>
                                         <input
@@ -156,8 +183,8 @@ const Recepcion = () => {
                                             className="input"
                                             required
                                         />
-                                        <button type="submit" className="save-button">
-                                            Guardar
+                                        <button type="submit" className="save-button" disabled={isSubmitting}>
+                                            {isSubmitting ? 'Guardando...' : 'Guardar'}
                                         </button>
                                     </form>
                                 </div>
@@ -181,42 +208,41 @@ const Recepcion = () => {
                 </div>
             </div>
             <div className="appointments-list">
-
                 <table>
                     <thead>
-                    <tr>
-                        <th>Seleccionar</th>
-                        <th>Nombre</th>
-                        <th>Correo</th>
-                        <th>Lugar de Toma</th>
-                        <th>Folio Develab</th>
-                        <th>Fecha Toma</th>
-                    </tr>
+                        <tr>
+                            <th>Seleccionar</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Lugar de Toma</th>
+                            <th>Folio Develab</th>
+                            <th>Fecha Toma</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {filteredAppointments.length > 0 ? (
-                        filteredAppointments.map((appointment) => (
-                            <tr key={appointment._id}>
-                                <td>
-                                    <input
-                                        className="roundedOne"
-                                        type="checkbox"
-                                        checked={selectedAppointments.includes(appointment)}
-                                        onChange={() => handleSelectAppointment(appointment)}
-                                    />
-                                </td>
-                                <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
-                                <td>{appointment.email}</td>
-                                <td>{appointment.sampleLocation}</td>
-                                <td>{appointment.FolioDevelab}</td>
-                                <td>{moment(appointment.fechaToma).format("YYYY-MM-DD HH:mm")}</td>
+                        {filteredAppointments.length > 0 ? (
+                            filteredAppointments.map((appointment) => (
+                                <tr key={appointment._id}>
+                                    <td>
+                                        <input
+                                            className="roundedOne"
+                                            type="checkbox"
+                                            checked={selectedAppointments.includes(appointment)}
+                                            onChange={() => handleSelectAppointment(appointment)}
+                                        />
+                                    </td>
+                                    <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
+                                    <td>{appointment.email}</td>
+                                    <td>{appointment.sampleLocation}</td>
+                                    <td>{appointment.FolioDevelab}</td>
+                                    <td>{moment(appointment.fechaToma).format("YYYY-MM-DD HH:mm")}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="6">No se encontraron citas procesadas hoy.</td>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="6">No se encontraron citas procesadas hoy.</td>
-                        </tr>
-                    )}
+                        )}
                     </tbody>
                 </table>
             </div>

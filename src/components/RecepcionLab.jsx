@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { FaTrash } from "react-icons/fa";
 import moment from "moment-timezone";
 import { DNA } from 'react-loader-spinner';
-import "./dashboard.css"; // Usar el mismo archivo CSS que el Dashboard
+import "../styles/recepcion.css"; 
 
 const RecepcionLab = () => {
     const [preventixRecords, setPreventixRecords] = useState([]);
@@ -23,9 +23,7 @@ const RecepcionLab = () => {
                 "https://webapitimser.azurewebsites.net/api/v1/preventix/getall",
                 {
                     withCredentials: true,
-                    params: {
-                        populateAppointment: true, // Asegúrate de que tu backend soporte este parámetro para popular los datos de la cita
-                    },
+                    
                 }
             );
 
@@ -211,7 +209,7 @@ const RecepcionLab = () => {
                                 <td>
                                     {selectedRecords.includes(record) ? (
                                         <select
-                                            value={localChanges[record._id]?.estatusMuestra || record.estatusMuestra || "Buen Estado"}
+                                            value={localChanges[record._id]?.estatusMuestra || record.estatusMuestra }
                                             onChange={(e) => handleLocalChange(record._id, 'estatusMuestra', e.target.value)}
                                             className="input"
                                         >
