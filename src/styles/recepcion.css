@@ -1,0 +1,221 @@
+/* recepcion.css */
+
+/* Importación de fuentes si es necesario */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;900&display=swap");
+
+/* Reset de estilos */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Estilos generales */
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f9f9f9;
+}
+
+/* Contenedor principal */
+.dashboard {
+  color: #333;
+  background-color: #f4f4f4;
+  padding: 20px;
+}
+
+.page {
+  margin-left: 0;
+  border-radius: 0;
+}
+
+.banner {
+  display: flex;
+  justify-content: space-between;
+  background-color: #fafafa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+.secondBox, .thirdBox {
+  display: flex;
+  align-items: center;
+}
+
+.secondBox p, .thirdBox p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.secondBox h3, .thirdBox h3 {
+  margin-left: 10px;
+  font-size: 24px;
+}
+
+/* Estilos para card-content */
+.card-content {
+  display: flex;
+  align-items: center;
+}
+
+/* Estilos para el contenedor del código de barras */
+.barcode-container {
+  position: relative;
+  width: 100%;
+}
+
+.barcode-input {
+  width: 100%;
+  padding: 10px;
+  padding-right: 40px; /* Espacio para el icono */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.clear-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+}
+
+/* Estilos para la lista de citas */
+.appointments-list {
+  background: white;
+  padding-top: 30px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  min-height: 100vh !important;
+}
+
+/* Estilos de la tabla */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+  color: #111;
+  font-size: 16px;
+}
+
+thead {
+  background-color: #f5f5f5;
+}
+
+thead th {
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 2px solid #ddd;
+}
+
+tbody tr {
+  border-bottom: 1px solid #ddd;
+}
+
+tbody td {
+  padding: 10px 15px;
+  font-size: 14px;
+  color: #555;
+}
+
+tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Estilos para roundedOne (checkbox personalizado) */
+.roundedOne {
+  position: relative;
+}
+
+.roundedOne input[type="checkbox"] {
+  visibility: hidden;
+}
+
+.roundedOne input[type="checkbox"] + label {
+  position: relative;
+  cursor: pointer;
+  padding-left: 25px;
+}
+
+.roundedOne input[type="checkbox"] + label:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.roundedOne input[type="checkbox"]:checked + label:before {
+  background: #0d7a79;
+  border-color: #0d7a79;
+}
+
+.roundedOne input[type="checkbox"]:checked + label:after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+/* Estilos para inputs */
+.input {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Estilos para el botón "Actualizar" */
+.botonactualizar {
+  background-color: #0d7a79;
+  border: 2px solid #093a39;
+  border-radius: 30px;
+  color: white;
+  font-size: 12px;
+  height: 35px;
+  padding: 0 20px;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+}
+
+.botonactualizar:hover {
+  background-color: #093a39;
+}
+
+/* Estilos para el contenedor del loader */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Estilos para el input de temperatura */
+.input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.input[type="number"]::-webkit-outer-spin-button,
+.input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
