@@ -85,6 +85,9 @@ const SidebarAdminLab = () => {
                   Elisas
                 </MenuItem>
                 <MenuItem icon={<BsReception4 />} component={<Link to="/receptionlab" />}>
+                  Recepción Lab
+                </MenuItem>
+                <MenuItem icon={<BsReception4 />} component={<Link to="/reception" />}>
                   Recepción
                 </MenuItem>
                 <MenuItem icon={<FaVials />} component={<Link to="/preventix" />}>
