@@ -127,13 +127,8 @@ const WesternBlot = () => {
             if (response.data.preventix) {
                 const allRecords = response.data.preventix;
 
-                // Filtrar registros donde temperatura y estatusMuestra son diferentes de null
-                const filteredRecords = allRecords.filter(record =>
-                    record.temperatura != null && record.estatusMuestra != null
-                );
-
                 // Ordenar los registros del más reciente al más antiguo
-                const sortedRecords = filteredRecords.sort((a, b) =>
+                const sortedRecords = allRecords.sort((a, b) =>
                     new Date(b.tiempoInicioProceso) - new Date(a.tiempoInicioProceso)
                 );
 
@@ -280,10 +275,6 @@ const WesternBlot = () => {
 
     const filterRecords = useCallback(() => {
         return preventixRecords.filter(record => {
-            // Añadir condiciones de temperatura y estatusMuestra
-            const temperaturaValid = record.temperatura != null;
-            const estatusMuestraValid = record.estatusMuestra != null;
-
             const folioDevelabMatch = (folioDevelabRange.min === "" || record.folioDevelab >= folioDevelabRange.min) &&
                 (folioDevelabRange.max === "" || record.folioDevelab <= folioDevelabRange.max);
             const fechaIngresoMatch = (fechaIngresoRange.start === "" || moment(record.tiempoInicioProceso).isSameOrAfter(fechaIngresoRange.start)) &&
@@ -296,7 +287,7 @@ const WesternBlot = () => {
                 record.resultadoElisa?.toLowerCase().includes(searchTerm)
             );
 
-            return temperaturaValid && estatusMuestraValid && folioDevelabMatch && fechaIngresoMatch && searchTermMatch;
+            return folioDevelabMatch && fechaIngresoMatch && searchTermMatch;
         });
     }, [preventixRecords, folioDevelabRange, fechaIngresoRange, searchTerm]);
 
