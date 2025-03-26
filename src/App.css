@@ -19,7 +19,11 @@ body {
   display: flex;
 }
 
-/* Estilos generales para botones */
+/* ----------------------------
+   ESTILOS GENERALES DE BOTONES
+   ---------------------------- */
+
+/* Estilo genérico para todos los <button> */
 button {
   border: 2px solid;
   color: white;
