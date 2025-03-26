@@ -26,27 +26,19 @@ const Dashboard = () => {
   const [customerMapping, setCustomerMapping] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const cacheKey = "appointmentsCache";
-  const cacheExpiry = 5 * 60 * 1000; // 5 minutos
+  // Eliminamos el caché para asegurar la visualización en tiempo real
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    const cachedData = sessionStorage.getItem(cacheKey);
-    const cachedTime = sessionStorage.getItem(`${cacheKey}_time`);
-
-    if (cachedData && cachedTime && Date.now() - cachedTime < cacheExpiry) {
-      setAppointments(JSON.parse(cachedData));
-      setLoading(false);
-      return;
+  // Se agrega el parámetro "isPolling" para no modificar el estado de loading durante las actualizaciones de fondo
+  const fetchData = useCallback(async (isPolling = false) => {
+    if (!isPolling) {
+      setLoading(true);
     }
-
     try {
       const response = await axios.get("https://webapitimser.azurewebsites.net/api/v1/appointment/getall", { withCredentials: true });
       if (response.data.appointments) {
-        const appointmentsData = response.data.appointments.reverse();
-        setAppointments(appointmentsData);
-        sessionStorage.setItem(cacheKey, JSON.stringify(appointmentsData));
-        sessionStorage.setItem(`${cacheKey}_time`, Date.now());
+        // Se invierte el orden para que se muestren primero los últimos ingresados
+        // No se limita a 100 para asegurar que se vea en tiempo real
+        setAppointments(response.data.appointments.reverse());
       } else {
         throw new Error("No appointments data received");
       }
@@ -54,8 +46,20 @@ const Dashboard = () => {
       toast.error("Error fetching appointments: " + error.message);
       setAppointments([]);
     }
-    setLoading(false);
+    if (!isPolling) {
+      setLoading(false);
+    }
   }, []);
+
+  // Polling: actualiza los appointments cada 5 segundos en segundo plano, siempre y cuando no se esté editando o usando el modal
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!editingAppointment && !showModal) {
+        fetchData(true);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [fetchData, editingAppointment, showModal]);
 
   const fetchLocationsAndCustomers = useCallback(async () => {
     try {
@@ -116,15 +120,6 @@ const Dashboard = () => {
     fetchLocationsAndCustomers();
     fetchDatat();
     fetchDatatp();
-    const interval = setInterval(fetchData, 60000);
-    const interval1 = setInterval(fetchDatat, 60000);
-    const interval2 = setInterval(fetchDatatp, 60000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(interval1);
-      clearInterval(interval2);
-    };
   }, [fetchData, fetchLocationsAndCustomers, fetchDatat, fetchDatatp]);
 
   const addPatient = () => setShowModal(true);
@@ -232,8 +227,6 @@ const Dashboard = () => {
 
       const fechaTomaValida = appointment.fechaToma ? moment(appointment.fechaToma).tz("America/Mexico_City") : moment().tz("America/Mexico_City");
       const sampleDate = fechaTomaValida.toISOString().slice(0, 16);
-
-      
 
       const orderData = {
         branchId: 1,
@@ -350,13 +343,22 @@ const Dashboard = () => {
     }
   };
 
+  // Si no se está buscando, se muestran solo las citas de los últimos 5 días;
+  // de lo contrario se busca en todo el histórico
   const filteredAppointments = useMemo(() => {
-    return appointments.filter(appointment =>
-      appointment._id.toLowerCase().includes(searchTerm) ||
-      appointment.patientFirstName.toLowerCase().includes(searchTerm) ||
-      appointment.patientLastName.toLowerCase().includes(searchTerm) ||
-      appointment.sampleLocation.toLowerCase().includes(searchTerm)
-    );
+    if (!searchTerm) {
+      const fiveDaysAgo = moment().subtract(5, "days");
+      return appointments.filter(appointment =>
+        moment(appointment.createdAt || appointment.fechaToma).isAfter(fiveDaysAgo)
+      );
+    } else {
+      return appointments.filter(appointment =>
+        appointment._id.toLowerCase().includes(searchTerm) ||
+        appointment.patientFirstName.toLowerCase().includes(searchTerm) ||
+        appointment.patientLastName.toLowerCase().includes(searchTerm) ||
+        appointment.sampleLocation.toLowerCase().includes(searchTerm)
+      );
+    }
   }, [appointments, searchTerm]);
 
   if (!isAuthenticated) {
@@ -384,10 +386,9 @@ const Dashboard = () => {
         <InfoBox title="Cuestionarios" count={appointmentst} />
         <InfoBox title="Tomadas" count={appointmentstp} />
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        
       </div>
       <div className="banner">
-      <Actions fetchData={fetchData} fetchDatat={fetchDatat} fetchDatatp={fetchDatatp} downloadExcel={downloadExcel} addPatient={addPatient} />
+        <Actions fetchData={fetchData} fetchDatat={fetchDatat} fetchDatatp={fetchDatatp} downloadExcel={downloadExcel} addPatient={addPatient} />
       </div>
       <div className="bannerd">
         {showModal && (
@@ -457,7 +458,7 @@ const SearchBar = ({ searchTerm, setSearchTerm }) => (
 const Actions = ({ fetchData, fetchDatat, fetchDatatp, downloadExcel, addPatient }) => (
   <div className="card-content1">
     <button onClick={() => { fetchData(); fetchDatat(); fetchDatatp(); }} className="buttondashboard">Actualizar</button>
-    <button onClick={downloadExcel} className="buttondashboard">Descargar Excel</button>
+    <button onClick={downloadExcel} className="buttondashboard">Descargar </button>
     <button onClick={addPatient} className="buttondashboard">Agregar</button>
   </div>
 );

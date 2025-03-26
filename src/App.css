@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;900&display=swap");
 
+/* Reset y estilos base */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -27,6 +28,7 @@ button {
   padding: 0 20px;
   width: 100%;
   outline: none;
+  cursor: pointer;
 }
 
 button::placeholder {
@@ -38,47 +40,56 @@ button:hover {
   background: rgba(34, 50, 84, 0.1);
 }
 
-/* Botón dashboard */
+/* .card-content1 para acomodar botones en fila y ocupar altura */
 .card-content1 {
-  display: block !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 10px;
-  background-color: #f7f7f7;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch; /* Se estiren verticalmente */
+  gap: 10px;
+  height: 20px; /* Mantiene la altura establecida por el usuario */
 }
-.cuadrobusqueda{
-  width: 50%;
-  height: 100%;
-  border: 1px solid #ddd;
+
+/* Botones dentro de .card-content1 */
+.card-content1 .buttondashboard {
+  flex: 1;               /* Se reparten equitativamente el espacio horizontal */
+  border: none;
   border-radius: 5px;
-  margin: 10px;
+  background-color: #0d7a79;
+  color: #fff;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
+
+.card-content1 .buttondashboard:hover {
+  background-color: #095f5e;
+}
+
+/* Botones .buttondashboard (en otros contextos) */
 .buttondashboard {
   margin: 0 1%;
   font-size: 15px;
   font-weight: bold;
   width: 32%;
   border-radius: 5px;
-  cursor: pointer;
-  border: 2px solid #0d7a79; /* Ajustar el color del borde según sea necesario */
-  background-color: #0d7a79; /* Ajustar el color de fondo según sea necesario */
-  color: #fff; /* Color del texto */
-  transition: background-color 0.3s ease; /* Transición para el cambio de color de fondo */
+  border: 2px solid #0d7a79;
+  background-color: #0d7a79;
+  color: #fff;
+  transition: background-color 0.3s ease;
 }
+
 .buttondashboard:first-child {
   margin-left: 0;
 }
-
 .buttondashboard:last-child {
   margin-right: 0;
 }
+
 .buttondashboard:hover {
-  background-color: #34BFB1; /* Ajustar el color de fondo en hover según sea necesario */
-  border-color: #34BFB1; /* Ajustar el color del borde en hover según sea necesario */
-  color: #BD4C6C; /* Color del texto */;
+  background-color: #34bfb1;
+  border-color: #34bfb1;
+  color: #bd4c6c;
 }
+
 /* Botón de eliminación */
 .delete-button {
   background-color: #bd0000;
@@ -91,23 +102,26 @@ button:hover {
 }
 
 /* Botón de actualización */
-.update-button1, .botonactualizar, .botoncard {
+.update-button1,
+.botonactualizar,
+.botoncard {
   background-color: #0d7a79;
   border-color: #0d7a79;
 }
-
-.update-button1:hover, .botonactualizar:hover, .botoncard:hover {
+.update-button1:hover,
+.botonactualizar:hover,
+.botoncard:hover {
   color: #0d7a79;
   border-color: #06dad6;
 }
 
 /* Botón de cita */
-.appoin-button, .appoin-button1 {
+.appoin-button,
+.appoin-button1 {
   background-color: #0d1d7a;
   border-color: #0d7a79;
   border-radius: 30px;
 }
-
 .appoin-button1:hover {
   color: #0d7a79;
   border-color: #06dad6;
@@ -119,7 +133,6 @@ button:hover {
   border-color: #790303;
   border-radius: 30px;
 }
-
 .cancel-button:hover {
   color: #ce0b0b;
 }
@@ -129,29 +142,29 @@ button:hover {
   background-color: #01276e;
   border-color: #0c4eca;
 }
-
 .buttonprint:hover {
   background-color: white;
   color: #01276e;
 }
-
 .buttonprint.disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Contenedores y Cajas */
+/* ----------------------------
+   CONTENEDORES Y CAJAS
+   ---------------------------- */
+
 .container {
   padding: 0 100px;
 }
-
 @media (max-width: 700px) {
   .container {
     padding: 0 20px;
   }
 }
 
-/* Formulario */
+/* Formularios */
 .form-component {
   padding: 40px 0 60px;
   min-height: 100vh;
@@ -161,7 +174,9 @@ button:hover {
   align-items: center;
 }
 
-.form-component h2, .form-component h4, .form-component p {
+.form-component h2,
+.form-component h4,
+.form-component p {
   color: gray;
   text-align: center;
 }
@@ -188,16 +203,15 @@ button:hover {
   background: linear-gradient(140deg, #9083d5, #271776ca);
 }
 
+/* Ajustes responsivos en formularios */
 @media (max-width: 888px) {
   .form-component {
     padding: 30px 0;
   }
-
   .form-component form div {
     flex-direction: column;
   }
 }
-
 @media (max-width: 667px) {
   .form-component form input,
   .form-component form select,
@@ -205,13 +219,11 @@ button:hover {
     font-size: 20px;
   }
 }
-
 @media (max-width: 600px) {
   .form-component form {
     width: 100%;
   }
 }
-
 @media (max-width: 485px) {
   .add-admin-form {
     padding: 30px 0;
@@ -231,37 +243,37 @@ button:hover {
   z-index: 1000;
   overflow-y: auto;
 }
-
 .pro-sidebar.collapsed {
   width: 80px;
 }
-
 .main-content {
   padding: 10px;
   transition: all 0.3s ease;
 }
-
 .pro-sidebar.collapsed + .main-content {
   margin-left: 80px;
 }
-
 .ps-menuitem-root .css-1rp6xt4 {
   background-color: #149290;
 }
 
-/* Dashboard */
+/* ----------------------------
+   DASHBOARD
+   ---------------------------- */
+
 .dashboard {
   color: #333;
   background-color: #f4f4f4;
   padding: 20px;
 }
-
 .dashboard-header {
   text-align: center;
   margin-bottom: 20px;
 }
-
-.dashboard-cards, .dashboard .banner:first-child .firstBox, .dashboard .banner:first-child .secondBox, .dashboard .banner:first-child .thirdBox {
+.dashboard-cards,
+.dashboard .banner:first-child .firstBox,
+.dashboard .banner:first-child .secondBox,
+.dashboard .banner:first-child .thirdBox {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
@@ -269,28 +281,29 @@ button:hover {
   gap: 20px;
 }
 
-/* Estilo para el banner */
+/* Altura forzada por el usuario */
 .bannerd {
-height: 900px;  
-
+  height: 900px;
 }
 
-.card, .card1, .dashboard-card {
+.card,
+.card1,
+.dashboard-card {
   background: white;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
-
 .card {
   width: 100%;
 }
-
-.card1, .dashboard-card {
+.card1,
+.dashboard-card {
   width: calc(25% - 20px);
 }
 
+/* Responsivo en .card1 y .dashboard-card */
 @media (max-width: 1024px) {
   .card1 {
     width: 40%;
@@ -299,7 +312,6 @@ height: 900px;
     width: calc(33.33% - 20px);
   }
 }
-
 @media (max-width: 768px) {
   .card1 {
     width: 50%;
@@ -308,7 +320,6 @@ height: 900px;
     width: calc(50% - 20px);
   }
 }
-
 @media (max-width: 480px) {
   .card1 {
     width: 100%;
@@ -318,39 +329,34 @@ height: 900px;
   }
 }
 
-/* Responsivo y otros */
-
+/* Ajustes de layout en pantallas grandes y pequeñas */
 @media (max-width: 1400px) {
   .main-content {
     width: calc(100% - 10px);
   }
-
   .page {
     margin-left: 0;
     border-radius: 0;
     min-height: 100vh;
   }
-
-  .paged, .dashboard {
+  .paged,
+  .dashboard {
     margin-left: 0;
   }
 }
-
 @media (max-width: 485px) {
-  .page, .paged {
+  .page,
+  .paged {
     padding: 40px 20px;
   }
-
   .logo {
     width: 100%;
   }
-
   .dashboard .banner:first-child .firstBox {
     flex-direction: column;
     height: fit-content;
     padding: 20px;
   }
-
   .dashboard .banner:first-child .firstBox img {
     width: 270px;
     height: 270px;
@@ -358,22 +364,19 @@ height: 900px;
   }
 }
 
-/* Miscelaneos */
-
-/* Input de fecha y hora */
-input[type="date"]:before, input[type="time"]:before {
+/* Misceláneos */
+input[type="date"]:before,
+input[type="time"]:before {
   content: attr(placeholder);
   color: #444;
   margin-right: 0.5em;
 }
 
-/* Barra de progreso */
 .progress-bar {
   height: 100%;
   background-color: #4caf50;
   transition: width 0.3s ease;
 }
-
 .progress-text {
   position: absolute;
   width: 100%;
@@ -383,18 +386,20 @@ input[type="date"]:before, input[type="time"]:before {
   font-weight: bold;
 }
 
-/* Estilos para thead y th */
-thead, th {
+/* Sticky header en tablas */
+thead,
+th {
   position: sticky;
   top: 0;
-  background: white; /* Ajustar según el color de fondo que prefieras */
+  background: white;
 }
 
-.appointments-list{
+/* Forzando altura de appointments-list */
+.appointments-list {
   height: 1000px !important;
 }
 
-/* Contenedor general del banner */
+/* Banner unificado */
 .unified-banner {
   background-color: #fff;
   padding: 20px;
@@ -403,23 +408,17 @@ thead, th {
   margin-bottom: 20px;
   text-align: center;
 }
-
-/* Título del banner */
 .banner-title {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
   color: #0d7a79;
 }
-
-/* Grid para organizar las tarjetas 2x2 */
 .banner-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 20px;
 }
-
-/* Tarjetas dentro del banner */
 .banner-card {
   background-color: #f9f9f9;
   padding: 15px;
@@ -430,47 +429,30 @@ thead, th {
   align-items: center;
   justify-content: center;
 }
-
 .banner-card.full-width-card {
   grid-column: span 2;
   justify-content: flex-start;
   gap: 10px;
 }
-
-/* Estilos para las secciones internas */
 .banner-card p {
   font-size: 16px;
   color: #333;
   margin-bottom: 5px;
 }
-
 .banner-card h3 {
   font-size: 28px;
   font-weight: bold;
   color: #0d7a79;
 }
 
-.search-input {
-  width: 100%;
-  padding: 10px 15px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  transition: border-color 0.3s ease;
-}
-
-.search-input:focus {
-  border-color: #0d7a79;
-}
-
+/* Sección de acciones */
 .section-actions {
   display: flex;
   gap: 15px;
-  justify-content: space-between; /* Distribuye los botones equitativamente */
+  justify-content: space-between;
 }
-
 .section-actions button {
-  flex: 1; 
+  flex: 1;
   font-size: 16px;
   font-weight: 600;
   width: 150px;
@@ -478,24 +460,20 @@ thead, th {
   background-color: #0d7a79;
   border: none;
   border-radius: 8px;
-  cursor: pointer;
   transition: background-color 0.3s ease;
-  text-align: center; /* Asegura que el texto dentro de los botones esté centrado */
+  text-align: center;
 }
-
 .section-actions button:hover {
-  background-color: #34BFB1;
+  background-color: #34bfb1;
 }
 
-
-
+/* Filtrado */
 .filter-item input {
   padding: 8px 12px;
   font-size: 14px;
   border-radius: 8px;
   border: 1px solid #ddd;
 }
-
 .filter-item .icon {
   font-size: 24px;
   color: #0d7a79;
