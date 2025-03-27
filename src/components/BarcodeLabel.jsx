@@ -34,7 +34,7 @@ const BarcodeLabel = forwardRef(({ appointment }, ref) => {
                 <div style={{ marginBottom: '1mm' }}>{nombre}</div>
             </div>
             <div style={{ width: '100%', fontSize: '7pt', lineHeight: '1em', fontWeight: '700', color: 'black', textAlign: 'left' }}>
-                <div>BANORTE  -  {age}A  -  Fem</div>
+                <div>Congreso CDMX  -  {age}A  -  Fem</div>
                 <div >F.Nac: {birthDate}  -  F.Orden: {fechaToma}</div>
                 <div style={{ marginBottom: '1mm' }}>{email}</div>
             </div>
