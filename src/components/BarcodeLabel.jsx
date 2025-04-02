@@ -27,6 +27,7 @@ const BarcodeLabel = forwardRef(({ appointment }, ref) => {
     const age = appointment.birthDate ? new Date().getFullYear() - new Date(appointment.birthDate).getFullYear() : 'N/A';
     const nombre = (appointment.patientFirstName + " " + appointment.patientLastName).toUpperCase();
     const email = appointment.email;
+    const location = appointment.sampleLocation;
 
     return (
         <div ref={ref} style={{ width: '120mm', height: '37mm', padding: '2mm', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', fontFamily: 'Arial' }} className="border border-gray-300 bg-white">
@@ -34,7 +35,7 @@ const BarcodeLabel = forwardRef(({ appointment }, ref) => {
                 <div style={{ marginBottom: '1mm' }}>{nombre}</div>
             </div>
             <div style={{ width: '100%', fontSize: '7pt', lineHeight: '1em', fontWeight: '700', color: 'black', textAlign: 'left' }}>
-                <div>Congreso CDMX  -  {age}A  -  Fem</div>
+                <div>{location}  -  {age}A  -  Fem</div>
                 <div >F.Nac: {birthDate}  -  F.Orden: {fechaToma}</div>
                 <div style={{ marginBottom: '1mm' }}>{email}</div>
             </div>
