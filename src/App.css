@@ -482,3 +482,20 @@ th {
   font-size: 24px;
   color: #0d7a79;
 }
+/* PrintButtonMicro.css o tu archivo de estilos global */
+.label-containermicro {
+  display: inline-block;
+  width: 25mm;
+  height: 13mm;
+  box-sizing: border-box;
+  margin: 1mm;            /* Espacio entre etiquetas, ajusta a tu gusto */
+  vertical-align: top;    /* Alinea las etiquetas en la parte superior */
+  page-break-inside: avoid; /* Evita que se corte la etiqueta en una página distinta */
+}
+
+/* Opcional: Reglas de impresión para que no existan márgenes */
+@media print {
+  .label-containermicro {
+    page-break-inside: avoid;
+  }
+}
