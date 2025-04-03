@@ -106,7 +106,7 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
           padding: "0",
         }}
       >
-        <div style={{ paddingTop: "0.6mm", fontSize: "6px", margin: "0", padding: "0" }}>
+        <div style={{ paddingTop: "1.5mm", fontSize: "6px", margin: "0", padding: "0" }}>
           {appointment?.folioDevelab || "Sin folio"}
         </div>
         <div style={{ margin: "0", padding: "0" }}>{nombre}</div>
