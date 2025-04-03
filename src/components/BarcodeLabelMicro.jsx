@@ -58,8 +58,8 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
     <div
       ref={ref}
       style={{
-        width: "25mm",
-        height: "13mm",
+        width: "23mm",
+        height: "12mm",
         display: "flex",
         flexDirection: "row",
         boxSizing: "border-box",
@@ -73,7 +73,7 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
       {/* Columna izquierda: QR, folio y iniciales */}
       <div
         style={{
-          width: "10mm",
+          width: "11mm",
           marginRight: "1mm",
           textAlign: "center",
           display: "flex",
@@ -82,16 +82,17 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
           justifyContent: "center",
           padding: "0",
           margin: "0",
+          color: "black",
         }}
       >
-        <div style={{ fontSize: "5.8px", margin: "0", padding: "0" }}>
+        <div style={{ fontSize: "5.8px", margin: "0", paddingTop: "1.5mm" }}>
           {appointment?.folioDevelab || "Sin folio"}
         </div>
         <canvas
           ref={canvasRef}
           style={{ width: "7mm", height: "7mm", margin: "0", padding: "0" }}
         ></canvas>
-        <div style={{ fontSize: "5px", margin: "0", padding: "0.5mm", lineHeight: "1" }}>
+        <div style={{ fontSize: "5px", margin: "0", padding: "0.2mm", lineHeight: "1" }}>
           {iniciales}
         </div>
       </div>
@@ -106,7 +107,7 @@ const BarcodeLabelMicro = forwardRef(({ appointment }, ref) => {
           padding: "0",
         }}
       >
-        <div style={{ paddingTop: "1.5mm", fontSize: "6px", margin: "0", padding: "0" }}>
+        <div style={{ paddingTop: "1.5mm", fontSize: "6px", margin: "0" }}>
           {appointment?.folioDevelab || "Sin folio"}
         </div>
         <div style={{ margin: "0", padding: "0" }}>{nombre}</div>
