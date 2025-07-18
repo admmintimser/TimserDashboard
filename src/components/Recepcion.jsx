@@ -1,4 +1,11 @@
-import React, { useContext, useEffect, useState, useCallback, useMemo } from "react";
+// src/components/Recepcion.jsx
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
@@ -20,21 +27,26 @@ const useDebounce = (value, delay) => {
 
 const Recepcion = () => {
   const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedAppointments, setSelectedAppointments] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [formValues, setFormValues] = useState({ tiempoInicioProceso: "" });
+  const [formValues, setFormValues] = useState({
+    tiempoInicioProceso: "",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { isAuthenticated } = useContext(Context);
 
   // Se utiliza la ruta optimizada en el backend para obtener las citas (ya optimizadas con .lean())
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await axios.get("https://webapitimser.azurewebsites.net/api/v1/appointment/dashboard", {
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        "https://webapitimser.azurewebsites.net/api/v1/appointment/dashboard",
+        { withCredentials: true }
+      );
       const appointmentsData = response.data.appointments || [];
       // Solo se consideran las citas con tomaProcesada === true
       const processedAppointments = appointmentsData.filter(
@@ -45,6 +57,8 @@ const Recepcion = () => {
     } catch (error) {
       toast.error("Error fetching appointments: " + error.message);
       setAppointments([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -70,7 +84,9 @@ const Recepcion = () => {
 
   const handleModalOpen = useCallback(() => {
     if (selectedAppointments.length === 0) {
-      toast.info("Por favor, seleccione al menos una cita antes de ingresar al laboratorio.");
+      toast.info(
+        "Por favor, seleccione al menos una cita antes de ingresar al laboratorio."
+      );
       return;
     }
     setShowModal(true);
@@ -108,9 +124,13 @@ const Recepcion = () => {
             );
           } catch (error) {
             if (error.response?.data?.message) {
-              toast.error(`Error con el folio ${appointment.FolioDevelab}: ${error.response.data.message}`);
+              toast.error(
+                `Error con el folio ${appointment.FolioDevelab}: ${error.response.data.message}`
+              );
             } else {
-              toast.error(`Error con el folio ${appointment.FolioDevelab}: ${error.message}`);
+              toast.error(
+                `Error con el folio ${appointment.FolioDevelab}: ${error.message}`
+              );
             }
             throw error;
           }
@@ -135,15 +155,21 @@ const Recepcion = () => {
     if (!debouncedSearchTerm) return appointments;
     const term = debouncedSearchTerm.toLowerCase();
     return appointments.filter((appointment) =>
-      (appointment.FolioDevelab && appointment.FolioDevelab.toString().includes(term)) ||
-      (appointment.patientFirstName && appointment.patientFirstName.toLowerCase().includes(term)) ||
-      (appointment.patientLastName && appointment.patientLastName.toLowerCase().includes(term)) ||
-      (appointment.email && appointment.email.toLowerCase().includes(term)) ||
-      (appointment.sampleLocation && appointment.sampleLocation.toLowerCase().includes(term))
+      (appointment.FolioDevelab &&
+        appointment.FolioDevelab.toString().includes(term)) ||
+      (appointment.patientFirstName &&
+        appointment.patientFirstName.toLowerCase().includes(term)) ||
+      (appointment.patientLastName &&
+        appointment.patientLastName.toLowerCase().includes(term)) ||
+      (appointment.email &&
+        appointment.email.toLowerCase().includes(term)) ||
+      (appointment.sampleLocation &&
+        appointment.sampleLocation.toLowerCase().includes(term))
     );
   }, [appointments, debouncedSearchTerm]);
 
-  if (!appointments.length) {
+  // Mostrar loader mientras carga
+  if (loading) {
     return (
       <div className="loading-container">
         <DNA
@@ -154,6 +180,15 @@ const Recepcion = () => {
           ariaLabel="dna-loading"
           wrapperClass="dna-wrapper"
         />
+      </div>
+    );
+  }
+
+  // Si no hay citas ingresadas hoy, mostrar mensaje
+  if (appointments.length === 0) {
+    return (
+      <div className="no-data">
+        <p>No hay citas ingresadas hoy</p>
       </div>
     );
   }
@@ -191,7 +226,11 @@ const Recepcion = () => {
                       className="input"
                       required
                     />
-                    <button type="submit" className="save-button" disabled={isSubmitting}>
+                    <button
+                      type="submit"
+                      className="save-button"
+                      disabled={isSubmitting}
+                    >
                       {isSubmitting ? "Guardando..." : "Guardar"}
                     </button>
                   </form>
@@ -210,7 +249,10 @@ const Recepcion = () => {
                 onChange={handleBarcodeInput}
                 autoFocus
               />
-              <FaTrash className="clear-icon" onClick={handleClearBarcodeInput} />
+              <FaTrash
+                className="clear-icon"
+                onClick={handleClearBarcodeInput}
+              />
             </div>
           </div>
         </div>
@@ -235,15 +277,23 @@ const Recepcion = () => {
                     <input
                       className="roundedOne"
                       type="checkbox"
-                      checked={selectedAppointments.some(appt => appt._id === appointment._id)}
-                      onChange={() => handleSelectAppointment(appointment)}
+                      checked={selectedAppointments.some(
+                        (appt) => appt._id === appointment._id
+                      )}
+                      onChange={() =>
+                        handleSelectAppointment(appointment)
+                      }
                     />
                   </td>
                   <td>{`${appointment.patientFirstName} ${appointment.patientLastName}`}</td>
                   <td>{appointment.email}</td>
                   <td>{appointment.sampleLocation}</td>
                   <td>{appointment.FolioDevelab}</td>
-                  <td>{moment(appointment.fechaToma).format("YYYY-MM-DD HH:mm")}</td>
+                  <td>
+                    {moment(appointment.fechaToma).format(
+                      "YYYY-MM-DD HH:mm"
+                    )}
+                  </td>
                 </tr>
               ))
             ) : (
