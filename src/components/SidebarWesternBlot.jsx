@@ -61,6 +61,7 @@ const SidebarWesternBlot = () => {
                     >
                         <MenuItem icon={<GiHamburgerMenu />} onClick={() => setCollapsed(!collapsed)}>Menu</MenuItem>
                         <MenuItem icon={<TiHome />} component={<Link to="/" />}>Home</MenuItem>
+                         <MenuItem icon={<TiHome />} component={<Link to="/dashboard" />}>Dashboard Registro</MenuItem>
                         <MenuItem icon={<RiDashboardLine />} component={<Link to="/westernblot" />}>Western Blot</MenuItem>
                         <MenuItem icon={<BsCardChecklist />} component={<Link to="/estatus-preventix-dashboard" />}>Estatus</MenuItem>
                         <MenuItem icon={<BsCardChecklist />} component={<Link to="/preventix" />}>Preventix</MenuItem>
